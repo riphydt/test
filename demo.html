@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trendtopik Hit Panel</title>
+<style>
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #121212;
+  color: #eee;
+  overflow-x: hidden;
+}
+
+#preloader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: black;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  z-index: 1000;
+  transition: opacity 2s ease;
+  text-align: center;
+}
+
+#preloader h1 {
+  font-size: 6vw;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+#preloader.fade-out {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 2s ease;
+}
+
+#content {
+  opacity: 0;
+  transition: opacity 2s ease;
+}
+
+#content.visible {
+  opacity: 1;
+}
+
+header {
+  background-color: #121212;
+  padding: 20px;
+  text-align: center;
+  font-size: 5vw;
+  font-weight: bold;
+  box-shadow: 0 0 15px #d90429 inset;
+  position: relative;
+}
+
+.buy-button {
+  position: absolute;
+  top: 50%;
+  right: 20px;
+  transform: translateY(-50%);
+  background: linear-gradient(135deg, #d90429, #000);
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: bold;
+  box-shadow: 0 0 15px #d90429, 0 0 30px #d90429 inset;
+  transition: all 0.4s ease;
+  border: 2px solid #d90429;
+  font-size: 3vw;
+}
+
+.buy-button:hover {
+  background: linear-gradient(135deg, #ff4b5c, #000);
+  box-shadow: 0 0 25px #ff4b5c, 0 0 50px #ff4b5c inset;
+  transform: translateY(-50%) scale(1.05);
+}
+
+nav {
+  background-color: #1e1e1e;
+  padding: 10px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+nav a {
+  color: #eee;
+  text-decoration: none;
+  font-size: 4vw;
+  padding: 8px 16px;
+  background-color: #333;
+  border-radius: 8px;
+  transition: background-color 0.3s;
+  cursor: pointer;
+}
+
+nav a:hover,
+nav a.active {
+  background-color: #d90429;
+  box-shadow: 0 0 10px #d90429;
+}
+
+main {
+  padding: 20px;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+form, table {
+  background-color: #1e1e1e;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px #d90429;
+  margin-top: 20px;
+  overflow-x: auto;
+}
+
+input[type="text"] {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: none;
+  border-radius: 5px;
+  background-color: #333;
+  color: #eee;
+  font-size: 4vw;
+}
+
+button {
+  padding: 10px 20px;
+  background: #d90429;
+  border: none;
+  border-radius: 5px;
+  color: white;
+  font-size: 4vw;
+  cursor: pointer;
+  box-shadow: 0 0 10px #d90429;
+  transition: transform 0.3s;
+}
+
+button:hover {
+  background: #ff4b5c;
+  box-shadow: 0 0 20px #ff4b5c;
+  transform: scale(1.05);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  font-size: 3.5vw;
+}
+
+th, td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #333;
+}
+
+th {
+  background-color: #d90429;
+}
+
+.dashboard-box {
+  flex: 1 1 200px;
+  background-color: #1e1e1e;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px #d90429 inset;
+  text-align: center;
+}
+
+.dashboard-title {
+  margin: 0;
+  font-size: 18px;
+}
+
+.dashboard-number {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+@media (min-width: 768px) {
+  header {
+    font-size: 28px;
+  }
+  .buy-button {
+    font-size: 16px;
+  }
+  nav a {
+    font-size: 18px;
+  }
+  input[type="text"], button {
+    font-size: 16px;
+  }
+  table {
+    font-size: 16px;
+  }
+}
+</style>
+</head>
+<body>
+<div id="preloader">
+  <canvas id="bgCanvas"></canvas>
+  <h1><span style="color: #ffffff;">Trendtopik</span> <span style="color: #d90429;">Hit</span></h1>
+</div>
+<div id="content">
+  <header>
+    Trendtopik Hit Panel
+    <a href="https://trendtopik.com" class="buy-button" target="_blank">Satın Al</a>
+  </header>
+  <nav>
+    <a href="#" id="dashboardBtn">Dashboard</a>
+    <a href="#" id="urlEkleBtn" class="active">URL Ekle</a>
+  </nav>
+  <main>
+    <section id="dashboardPanel" style="display: none;">
+      <div style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
+        <div class="dashboard-box">
+          <h3 class="dashboard-title">Toplam Site</h3>
+          <p class="dashboard-number">3</p>
+        </div>
+        <div class="dashboard-box">
+          <h3 class="dashboard-title">Gönderilen Hit</h3>
+          <p class="dashboard-number">1500</p>
+        </div>
+        <div class="dashboard-box">
+          <h3 class="dashboard-title">Aktif Site</h3>
+          <p class="dashboard-number">1</p>
+        </div>
+      </div>
+    </section>
+    <section id="urlEklePanel">
+      <form>
+        <label>Web Site URL:</label>
+        <input type="text" value="https://trendtopik.com" readonly>
+        <div style="margin-top: 10px;">
+          <label><input type="radio" name="mod" value="Hızlı" checked> Hızlı Mod</label>
+          <label style="margin-left: 20px;"><input type="radio" name="mod" value="Yavaş"> Yavaş Mod</label>
+        </div>
+        <button style="margin-top:20px;">URL Ekle</button>
+      </form>
+      <table>
+        <thead>
+          <tr>
+            <th>Site</th>
+            <th>Mod</th>
+            <th>Durum</th>
+            <th>Gönderilen Hit</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>https://trendtopik.com</td>
+            <td>Hızlı</td>
+            <td>Beklemede</td>
+            <td>0</td>
+          </tr>
+          <tr>
+            <td>https://trendtopik.com</td>
+            <td>Yavaş</td>
+            <td>Onay Verildi</td>
+            <td>1500</td>
+          </tr>
+          <tr>
+            <td>https://trendtopik.com</td>
+            <td>Hızlı</td>
+            <td>Reddedildi</td>
+            <td>-</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+</div>
+<script>
+const canvas = document.getElementById('bgCanvas');
+const ctx = canvas.getContext('2d');
+let width = canvas.width = window.innerWidth;
+let height = canvas.height = window.innerHeight;
+
+const dots = [];
+for (let i = 0; i < 80; i++) {
+  dots.push({ x: Math.random() * width, y: Math.random() * height, r: Math.random() * 2 + 1, speed: Math.random() * 1.5 + 0.5 });
+}
+
+function animate() {
+  ctx.fillStyle = 'black';
+  ctx.fillRect(0, 0, width, height);
+  for (let dot of dots) {
+    ctx.beginPath();
+    ctx.arc(dot.x, dot.y, dot.r, 0, Math.PI * 2);
+    ctx.fillStyle = '#d90429';
+    ctx.fill();
+    dot.x -= dot.speed;
+    if (dot.x < 0) {
+      dot.x = width;
+      dot.y = Math.random() * height;
+    }
+  }
+  requestAnimationFrame(animate);
+}
+animate();
+
+window.onload = function () {
+  setTimeout(function () {
+    document.getElementById('preloader').classList.add('fade-out');
+    document.getElementById('content').classList.add('visible');
+    setTimeout(function () {
+      document.getElementById('preloader').style.display = 'none';
+      document.body.style.overflow = 'auto';
+    }, 2000);
+  }, 3000);
+}
+
+window.onresize = function () {
+  width = canvas.width = window.innerWidth;
+  height = canvas.height = window.innerHeight;
+}
+
+const dashboardBtn = document.getElementById("dashboardBtn");
+const urlEkleBtn = document.getElementById("urlEkleBtn");
+const dashboardPanel = document.getElementById("dashboardPanel");
+const urlEklePanel = document.getElementById("urlEklePanel");
+
+dashboardBtn.addEventListener("click", () => {
+  dashboardPanel.style.display = "block";
+  urlEklePanel.style.display = "none";
+  dashboardBtn.classList.add("active");
+  urlEkleBtn.classList.remove("active");
+});
+
+urlEkleBtn.addEventListener("click", () => {
+  dashboardPanel.style.display = "none";
+  urlEklePanel.style.display = "block";
+  dashboardBtn.classList.remove("active");
+  urlEkleBtn.classList.add("active");
+});
+</script>
+</body>
+</html>
