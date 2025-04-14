@@ -52,18 +52,33 @@
             line-height: 1.7;
         }
 		
-		        .gif-container {
-            position: absolute;
-            top: -95px; /* Butonların ortasına denk gelecek şekilde ayarlandı */
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 10;
-            pointer-events: none;
-        }
+		       .gif-container {
+  max-width: 40%;
+  height: auto;
+  overflow: hidden;
+  display: block;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
 
-        .gif-container img {
-            width: 411px;
-        }
+.gif-container img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+@keyframes glowBorder {
+  0% { border-color: red; }
+  50% { border-color: darkred; }
+  100% { border-color: red; }
+}
+
+.gif-container img {
+  border: 4px solid red;
+  animation: glowBorder 2s infinite;
+}
+
         
         /* Particle Background */
         #particles-js {
