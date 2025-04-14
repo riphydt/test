@@ -51,6 +51,19 @@
             position: relative;
             line-height: 1.7;
         }
+		
+		        .gif-container {
+            position: absolute;
+            top: -95px; /* Butonların ortasına denk gelecek şekilde ayarlandı */
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .gif-container img {
+            width: 411px;
+        }
         
         /* Particle Background */
         #particles-js {
@@ -886,12 +899,21 @@
                 </div>
             </div>
         </div>
-    </section>
-    
+	 </section>
+	 
     <!-- Features Section -->
     <section id="features">
+	
+	
+		  		<!-- GİF BURADA ORTALANMIŞ HALDE -->
+    <div class="gif-container">
+        <img src="trendtopik.gif" alt="Trendtopik Animasyon">
+    </div>
+	
+	
         <div class="section-container">
             <div class="section-title">
+			<div class="section-title">
                 <h2>ÖZELLİKLER</h2>
                 <p>Gelişmiş FingerPrint Koruması, Proxy ve IP Döngüsü, Akıllı Davranış Simülasyonu, Gerçek Ziyaretçi Etkisi ve çok daha fazlası TRENDTOPIK ile fark yaratmak artık çok kolay. Gerçekçiliği merkeze alan teknolojimizle SEO süreçlerinize güç katın.</p>
             </div>
