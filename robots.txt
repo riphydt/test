@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /demo.html
+Allow: /index.html
+Allow: /
+
+Sitemap: https://trendtopik.com/sitemap.xml
