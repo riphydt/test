@@ -1,0 +1,434 @@
+/*--------------------------------------------------------------
+  07. Slider
+----------------------------------------------------------------*/
+
+.cs_slider {
+  position: relative;
+  z-index: 1;
+}
+
+.slick-arrow {
+  cursor: pointer;
+}
+
+.draggable {
+  cursor: url(../img/drag.png) 16 9, ew-resize !important;
+}
+
+.slick-slide > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.cs_remove_overflow {
+  .slick-list {
+    overflow: visible;
+  }
+
+  .slick-slide {
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s linear;
+
+    &.slick-active {
+      opacity: 1;
+      visibility: visible;
+    }
+  }
+}
+
+.cs_slider_gap_30 {
+  .slick-slide {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+
+  .slick-list {
+    margin-left: -15px;
+    margin-right: -15px;
+  }
+}
+
+.cs_testimonial_slider {
+  .slick-slide {
+    &:nth-child(odd) {
+      .cs_testimonial.cs_style_1 {
+        flex-direction: column-reverse;
+      }
+    }
+  }
+}
+
+.cs_slider_arrows.cs_style_1 {
+  display: flex;
+  gap: 15px;
+
+  .cs_left_arrow,
+  .cs_right_arrow {
+    height: 56px;
+    width: 56px;
+    flex: none;
+    background-color: var(--white-color);
+    box-shadow: 0px 6px 10px 0px rgba(52, 55, 170, 0.15);
+    transition: all 0.4s ease;
+
+    img {
+      transition: inherit;
+      filter: brightness(0) saturate(100%) invert(35%) sepia(31%)
+        saturate(7482%) hue-rotate(220deg) brightness(100%) contrast(88%);
+    }
+
+    &:hover {
+      background-color: var(--blue-color);
+
+      img {
+        filter: brightness(0) saturate(100%) invert(100%) sepia(1%) saturate(2%)
+          hue-rotate(83deg) brightness(112%) contrast(101%);
+      }
+    }
+  }
+
+  .cs_left_arrow img {
+    transform: rotate(180deg);
+  }
+
+  &.cs_type_1 {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+  }
+
+  &.cs_type_2 {
+    justify-content: flex-end;
+
+    .cs_left_arrow,
+    .cs_right_arrow {
+      background-color: transparent;
+      box-shadow: none;
+      border-top-color: var(--white-color);
+      border: 1px solid var(--white-color);
+
+      img {
+        filter: brightness(0) saturate(100%) invert(100%) sepia(1%) saturate(2%)
+          hue-rotate(83deg) brightness(112%) contrast(101%);
+      }
+
+      &:hover {
+        background-color: var(--accent-color);
+        border-color: var(--accent-color);
+      }
+    }
+  }
+}
+
+.cs_slider_arrows.cs_style_2 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+
+  .cs_left_arrow,
+  .cs_right_arrow {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .cs_slider_arrow_icon {
+    flex: none;
+    width: 55px;
+    height: 55px;
+    border: 1px solid #ededed;
+  }
+
+  @media (max-width: 370px) {
+    p {
+      display: none;
+    }
+  }
+}
+
+.cs_pagination.cs_style_1 {
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    margin-top: 35px;
+    margin-left: 60px;
+    display: flex !important;
+    gap: 15px;
+  }
+
+  li {
+    height: 12px;
+    width: 12px;
+    background: rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s ease;
+
+    &.slick-active {
+      background-color: var(--accent-color);
+    }
+  }
+
+  button {
+    display: none;
+  }
+}
+
+@media (max-width: 991px) {
+  .cs_mobile_hide {
+    display: none !important;
+  }
+}
+
+@media (min-width: 992px) {
+  .cs_mobile_show {
+    display: none !important;
+  }
+}
+
+/*---------------------------------------
+ Horizontal Slider
+-----------------------------------------*/
+.cs_horizontal_slider_wrapper {
+  overflow-x: hidden;
+
+  &.cs_brands_wrapper {
+    border-top: 2px solid rgba(42, 42, 42, 0.15);
+    border-bottom: 2px solid rgba(42, 42, 42, 0.15);
+
+    &.cs_type_1 {
+      border: 1px solid var(--gray-color-2);
+    }
+  }
+
+  &:hover {
+    .cs_project_list,
+    .cs_brands_list {
+      animation-play-state: paused;
+    }
+  }
+
+  .cs_project_list {
+    display: flex;
+    gap: 30px;
+    margin: 0 15px;
+    animation: slide-left 40s linear infinite;
+    animation-direction: reverse;
+  }
+}
+
+.cs_horizontal_slider_in {
+  display: flex;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  min-width: 100%;
+}
+
+/*---------------------------------------
+ Horizontal Slider Brands
+-----------------------------------------*/
+.cs_brands {
+  padding: 30px 0;
+}
+
+.cs_text_slider {
+  padding: 22px 0;
+  border-bottom: 1px solid rgba(23, 1, 44, 0.1);
+
+  &::before {
+    content: '';
+    width: 70%;
+    height: 1px;
+    background-color: rgba(23, 1, 44, 0.1);
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 0;
+  }
+}
+
+.cs_brands_list {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 24px;
+  margin: 0 12px;
+  animation: slide-left 40s linear infinite;
+
+  .cs_brand {
+    position: relative;
+    z-index: 1;
+
+    img {
+      transition: all 0.4s ease;
+      filter: brightness(0) saturate(100%) invert(3%) sepia(55%) saturate(7428%)
+        hue-rotate(43deg) brightness(90%) contrast(109%);
+      opacity: 0.3;
+    }
+
+    &:hover img {
+      opacity: 1;
+    }
+  }
+
+  &.cs_type_1 {
+    gap: 60px;
+    margin: 0 30px;
+    padding: 46px 0 40px;
+  }
+
+  &.cs_type_2 {
+    gap: 56px;
+    margin: 0 28px;
+    padding: 64px 0 50px;
+
+    .cs_brand img {
+      filter: none;
+      opacity: 1;
+    }
+  }
+
+  &.cs_type_3 {
+    color: transparent;
+    -webkit-text-stroke: 1.5px rgba(23, 1, 44, 0.25);
+    font-size: 120px;
+    font-weight: 800;
+    line-height: 1.2em;
+  }
+
+  &.cs_type_4 {
+    gap: 80px;
+    margin: 0 40px;
+
+    .cs_brand img {
+      filter: none;
+      opacity: 1;
+    }
+  }
+
+  > div {
+    width: max-content;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+
+  @media (max-width: 991px) {
+    &.cs_type_3 {
+      font-size: 88px;
+    }
+  }
+}
+
+/*-----------------------------------------
+ Single slider arrow & navigation
+--------------------------------------------*/
+.cs_single_product_thumb {
+  padding-bottom: 30px;
+
+  .slick-arrow {
+    width: 56px;
+    height: 56px;
+    background-color: transparent;
+    border: 1px solid var(--white-color);
+    border-radius: 50%;
+    outline: 0;
+    position: absolute;
+    top: calc(100% + 15px);
+    right: 0;
+    font-size: 0;
+
+    &.slick-prev {
+      transform: translateX(-72px) rotate(180deg);
+    }
+
+    &::after {
+      content: '';
+      width: 100%;
+      height: 100%;
+      background-image: url(../img/icons/arrow_right.svg);
+      background-repeat: no-repeat;
+      background-position: center;
+      position: absolute;
+      left: 0;
+      top: 0;
+    }
+
+    &:hover {
+      background-color: var(--accent-color);
+      border-color: var(--accent-color);
+    }
+  }
+
+  @media (max-width: 991px) {
+    padding-top: 40px;
+
+    .slick-arrow {
+      top: 0;
+    }
+  }
+}
+
+.cs_single_product_nav {
+  .cs_nav_img {
+    width: 81px !important;
+    height: 89px;
+    position: relative;
+    transition: all 0.4s ease;
+
+    &::before {
+      content: '';
+      width: 100%;
+      height: 100%;
+      background-image: url(../img/polygon.svg);
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: cover;
+      position: absolute;
+      top: 0;
+      left: 0;
+      opacity: 0;
+      transition: all 0.4s ease;
+    }
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      position: relative;
+      z-index: 1;
+    }
+  }
+
+  img .slick-list {
+    margin-left: -10px;
+    margin-right: -10px;
+  }
+
+  .slick-slide {
+    padding: 0 10px;
+
+    &.slick-current {
+      .cs_nav_img {
+        padding: 6px 5px;
+
+        &::before {
+          opacity: 1;
+        }
+      }
+    }
+  }
+}
+
+@keyframes slide-left {
+  0% {
+    transform: translateX(0%);
+  }
+
+  100% {
+    transform: translateX(-100%);
+  }
+}
