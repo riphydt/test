@@ -1,38 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset 
-  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-
-  <!-- Ana sayfa -->
-  <url>
-    <loc>https://trendtopik.com/index.html</loc>
-    <lastmod>2025-04-15</lastmod>
-    <priority>1.00</priority>
-  </url>
-
-  <!-- Özellikler -->
-  <url>
-    <loc>https://trendtopik.com/#features</loc>
-    <priority>0.80</priority>
-  </url>
-
-  <!-- Paketler -->
-  <url>
-    <loc>https://trendtopik.com/#pricing</loc>
-    <priority>0.80</priority>
-  </url>
-
-  <!-- SSS -->
-  <url>
-    <loc>https://trendtopik.com/#faq</loc>
-    <priority>0.70</priority>
-  </url>
-
-  <!-- İletişim -->
-  <url>
-    <loc>https://trendtopik.com/#contact</loc>
-    <priority>0.60</priority>
-  </url>
-
-  <!-- Demo Paneli indexlenmesin diye eklemiyoruz -->
-
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+        <loc>https://trendtopik.com/index.html</loc>
+        <lastmod>2025-05-04</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>1.0</priority>
+    </url>
+    <url>
+        <loc>https://trendtopik.com/about-us.html</loc>
+        <lastmod>2025-05-04</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://trendtopik.com/contact.html</loc>
+        <lastmod>2025-05-04</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.7</priority>
+    </url>
+    <url>
+        <loc>https://trendtopik.com/faqs.html</loc>
+        <lastmod>2025-05-04</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.7</priority>
+    </url>
+    <url>
+        <loc>https://trendtopik.com/pricing.html</loc>
+        <lastmod>2025-05-04</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.7</priority>
+    </url>
 </urlset>
