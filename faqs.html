@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+<head>
+  <!-- Temel Meta Etiketleri -->
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- SEO Meta Etiketleri -->
+  <title>Sıkça Sorulan Sorular | TrendTopik Trafik Bot & SEO Hizmetleri</title>
+  <meta name="description" content="TrendTopik hakkında sıkça sorulan sorular ve yanıtlar. Trafik botu, SEO, backlink hizmetleri ve daha fazlası hakkında bilgi edinin.">
+  <meta name="keywords" content="sıkça sorulan sorular, SEO, trafik botu, TrendTopik, backlink hizmeti, trafik çözümleri, SEO soruları">
+  <meta name="author" content="TrendTopik">
+
+  <!-- Open Graph (Facebook, LinkedIn vb. için) -->
+  <meta property="og:title" content="Sıkça Sorulan Sorular | TrendTopik Trafik Bot & SEO Hizmetleri">
+  <meta property="og:description" content="Trafik botu, SEO ve backlink hizmetleri hakkında sıkça sorulan sorulara yanıtları burada bulabilirsiniz. Hızlı çözümler ve bilgi için ziyaret edin.">
+  <meta property="og:image" content="https://trendtopik.com/assets/img/og-image.jpg">
+  <meta property="og:url" content="https://trendtopik.com/faqs.html">
+  <meta property="og:type" content="website">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Sıkça Sorulan Sorular | TrendTopik Trafik Bot & SEO Hizmetleri">
+  <meta name="twitter:description" content="Trafik botu ve SEO hizmetleri hakkında sıkça sorulan sorulara yanıtları öğrenin. TrendTopik ile her şeyin cevabı burada.">
+  <meta name="twitter:image" content="https://trendtopik.com/assets/img/og-image.jpg">
+
+  <!-- Favicon -->
+  <link rel="icon" href="assets/img/favicon.png" type="image/png">
+
+<!-- Telegram Chat Butonu (Yuvarlak Stil + Sahte Chat Paneli) -->
+<div id="telegram-chat-button">
+  <img src="https://img.icons8.com/ios-filled/50/ffffff/telegram-app.png" alt="Telegram" style="width: 28px; height: 28px; cursor: pointer;" onclick="toggleChatPanel()" />
+</div>
+
+<div id="chat-panel">
+  <div class="chat-header">Telegram İletişim</div>
+  <div class="chat-body">
+    <div class="chat-message bot">
+  Ürün ve hizmetlerimiz hakkında detaylı bilgi almak veya satın alma işlemlerinizi güvenle gerçekleştirmek için lütfen aşağıdaki butonu kullanarak bizimle iletişime geçiniz.
+</div>
+
+    <button onclick="redirectToTelegram()">Tıkla</button>
+  </div>
+</div>
+
+<script>
+function toggleChatPanel() {
+  const panel = document.getElementById('chat-panel');
+  panel.style.display = panel.style.display === 'flex' ? 'none' : 'flex';
+}
+
+function redirectToTelegram() {
+  window.open('https://t.me/trendtopiktr', '_blank');
+}
+</script>
+
+
+<style>
+  #telegram-chat-button {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    background-color: #0088cc;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    transition: background-color 0.3s ease;
+  }
+
+  #telegram-chat-button:hover {
+    background-color: #0077b3;
+  }
+
+  #chat-panel {
+    position: fixed;
+    bottom: 90px;
+    right: 20px;
+    width: 300px;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    display: none;
+    flex-direction: column;
+    z-index: 1000;
+  }
+
+  .chat-header {
+    background-color: #0088cc;
+    color: white;
+    padding: 10px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    font-weight: bold;
+  }
+
+  .chat-body {
+    padding: 10px;
+  }
+
+  .chat-message.bot {
+    background-color: #f1f1f1;
+    padding: 8px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    font-size: 14px;
+  }
+
+  textarea {
+    width: 100%;
+    height: 60px;
+    resize: none;
+    margin-bottom: 8px;
+  }
+
+  button {
+    width: 100%;
+    padding: 8px;
+    background-color: #0088cc;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  button:hover {
+    background-color: #0077b3;
+  }
+</style>
+
+<script>
+function toggleChatPanel() {
+  const panel = document.getElementById('chat-panel');
+  panel.style.display = panel.style.display === 'flex' ? 'none' : 'flex';
+}
+
+function sendMessageToTelegram() {
+  const message = document.getElementById('userMessage').value;
+  if (message.trim() === '') return;
+
+  fetch('sendMessage.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message })
+  }).then(res => {
+    alert('Mesaj gönderildi. Destek ekibi sizinle iletişime geçecek.');
+    document.getElementById('userMessage').value = '';
+  });
+}
+</script>
+  <!-- TELEGRAM WİDGET BİTİŞ -->
+
+
+  <!-- CSS Dosyaları -->
+  <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="assets/css/fontawesome.min.css">
+  <link rel="stylesheet" href="assets/css/animate.css">
+  <link rel="stylesheet" href="assets/css/odometer.css">
+  <link rel="stylesheet" href="assets/css/slick.min.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+  <body>
+   
+    <!-- Start Header Section -->
+    <header class="cs_site_header cs_style_1 cs_type_1 cs_sticky_header">
+      <div class="cs_main_header cs_white_color cs_semibold">
+        <div class="container-fluid">
+          <div class="cs_main_header_in">
+            <div class="cs_main_header_left">
+              <a class="cs_site_branding" href="index.html" aria-label="Logo link">
+              <img src="assets/img/logo_3.svg" alt="Logo">
+              </a>
+            </div>
+            <div class="cs_main_header_center">
+              <div class="cs_nav">
+                <ul class="cs_nav_list">
+                  <li class="menu-item-has-children">
+                    <a href="index.html" aria-label="Menu link">Anasayfa</a>
+                   
+                  </li>
+                  <li><a href="about-us.html" aria-label="Menu link">Hakkımızda +</a></li>
+                  <li class="menu-item-has-children">
+                    <a href="pricing.html" aria-label="Menu link">Hizmetler</a>
+                  </li>
+                  <li class="menu-item-has-children">
+                    <a href="faqs.html" aria-label="Menu link">SSS</a>
+                  <li><a href="contact.html" aria-label="Menu link">Bize Ulaşın</a></li>
+                </ul>
+              </div>
+            </div>
+            <div class="cs_main_header_right">
+              <button type="button" aria-label="Side header open button" class="cs_open_sideheader cs_blue_color border-0 bg-transparent">
+                <svg width="23" height="16" viewBox="0 0 23 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M0.328003 6.66667H16.828V9.33333H0.328003V6.66667ZM0.328003 0H22.328V2.66667H0.328003V0ZM0.328003 16H10.2761V13.3333H0.328003V16Z" fill="currentColor"/>
+                </svg>
+              </button>
+              <a href="contact.html" aria-label="Menu link" class="cs_btn cs_style_1 cs_blue_bg cs_fs_14 text-uppercase">
+              <span>Iletışım</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+    <!-- Sidebar Header -->
+<div class="cs_side_header">
+  <button class="cs_close"></button>
+  <div class="cs_side_header_overlay"></div>
+  <div class="cs_side_header_in">
+    <a class="cs_site_branding cs_mb_12" href="index.html">
+      <img src="assets/img/logo.svg" alt="Trendtopik Logo">
+    </a>
+    <p class="cs_fs_20 cs_medium cs_accent_color">SEO & Trafik Çözümleri</p>
+    <div class="cs_side_header_box pb-0">
+      <div class="cs_avatar">
+        <div class="cs_author_thumbnail cs_radius_50 cs_mb_15">
+          
+        </div>
+        <div class="cs_author_info">
+          <h3 class="cs_fs_24 cs_mb_4">RY Software</h3>
+          <p class="mb-0">Kurucu & Proje Yöneticisi</p>
+        </div>
+      </div>
+    </div>
+    <div class="cs_side_header_box">
+      <h3 class="cs_fs_24 cs_mb_30">Bize Ulaşın</h3>
+      <ul class="cs_contact_info_list cs_type_1 cs_mp_0">
+        <li>
+          <div class="cs_iconbox cs_style_6">
+            <span class="cs_iconbox_icon cs_center cs_radius_50 position-relative">
+              <img src="assets/img/icons/head_phone.svg" alt="Telefon ikonu">
+            </span>
+            <div class="cs_iconbox_info">
+              <p class="cs_mb_1">Telefonla Destek</p>
+              <a href="tel:+905551112233" aria-label="Telefon numarasını ara">+90 (555) 111 22 33</a>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="cs_iconbox cs_style_6">
+            <span class="cs_iconbox_icon cs_center cs_radius_50 position-relative">
+              <img src="assets/img/icons/email_2.svg" alt="E-posta ikonu">
+            </span>
+            <div class="cs_iconbox_info">
+              <p class="cs_mb_1">Her Zaman Yazabilirsiniz</p>
+              <a href="mailto:info@trendtopik.com" aria-label="E-posta gönder">info@trendtopik.com</a>
+            </div>
+          </div>
+        </li>
+      </ul>
+    </div>
+    <div class="cs_side_header_box p-0">
+      <h3 class="cs_fs_24 cs_mb_30">Sosyal Medya</h3>
+      <div class="cs_social_btns cs_style_1">
+        <a href="https://youtube.com/@trendtopiktr" aria-label="Facebook" class="cs_center cs_heading_bg cs_radius_50">
+          <i class="fa-brands fa-facebook-f"></i>
+        </a>
+        <a href="https://youtube.com/@trendtopiktr" aria-label="Twitter" class="cs_center cs_heading_bg cs_radius_50">
+          <i class="fa-brands fa-x-twitter"></i>
+        </a>
+        <a href="https://youtube.com/@trendtopiktr" aria-label="LinkedIn" class="cs_center cs_heading_bg cs_radius_50">
+          <i class="fa-brands fa-linkedin-in"></i>
+        </a>
+        <a href="https://youtube.com/@trendtopiktr" aria-label="YouTube" class="cs_center cs_heading_bg cs_radius_50">
+          <i class="fa-brands fa-youtube"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- End Header Section -->
+    <!-- Start Page Heading -->
+    <section class="cs_page_heading cs_bg_filed cs_center text-center cs_heading_bg position-relative" data-src="assets/img/page_header.jpg">
+      <div class="cs_overlay position-absolute"></div>
+      <div class="container">
+        <h1 class="cs_fs_50 cs_white_color cs_extra_bold cs_mb_20 wow fadeInDown">SSS</h1>
+        <ol class="breadcrumb wow fadeInUp">
+          <li class="breadcrumb-item"><a href="index.html" aria-label="Back to home page link">Anasayfa</a></li>
+          <li class="breadcrumb-item active">SSS</li>
+        </ol>
+      </div>
+    </section>
+    <!-- End Page Heading -->
+<!-- Start FAQ Section -->
+<section class="position-relative overflow-hidden">
+  <div class="cs_height_120 cs_height_lg_80"></div>
+  <div class="container">
+    <div class="cs_section_heading cs_style_1 text-center">
+      <p class="cs_section_subtitle cs_fs-18 cs_semibold cs_accent_color cs_center cs_mb_20 wow fadeInDown">
+        <span class="cs_shape_left"></span>SSS<span class="cs_shape_right"></span>
+      </p>
+      <h2 class="cs_fs_48 mb-0 wow fadeInUp">Sıkça Sorulan Sorular</h2>
+    </div>
+    <div class="cs_height_60 cs_height_lg_50"></div>
+    <div class="row cs_row_gap_30 cs_gap_y_30">
+      <div class="col-lg-6">
+        <div class="cs_accordian cs_style_1 cs_white_bg cs_type_1">
+          <div class="cs_accordian_head position-relative">
+            <h2 class="cs_accordian_title cs_fs_18 cs_semibold mb-0">Sitenize gelen trafik gerçek mi?</h2>
+            <span class="cs_accordian_toggler cs_heading_color position-absolute"><i class="fa-solid fa-angles-right"></i></span>
+          </div>
+          <div class="cs_accordian_body">
+            <p>Evet, sistemimizde kullanılan trafik kaynakları gerçek kullanıcı davranışlarını taklit eder ve Google Analytics’te görünür. Bot davranışı sergilemez.</p>
+          </div>
+        </div>
+        <div class="cs_accordian cs_style_1 cs_white_bg cs_type_1">
+          <div class="cs_accordian_head position-relative">
+            <h2 class="cs_accordian_title cs_fs_18 cs_semibold mb-0">Backlink trafiği nasıl çalışıyor?</h2>
+            <span class="cs_accordian_toggler cs_heading_color position-absolute"><i class="fa-solid fa-angles-right"></i></span>
+          </div>
+          <div class="cs_accordian_body">
+            <p>Sistemimiz, backlink verilen sayfalara gider, oradan hedef sitenize yönlenir. Bu şekilde Google, bağlantının gerçekten tıklanmış olduğunu algılar.</p>
+          </div>
+        </div>
+        <div class="cs_accordian cs_style_1 cs_white_bg cs_type_1">
+          <div class="cs_accordian_head position-relative">
+            <h2 class="cs_accordian_title cs_fs_18 cs_semibold mb-0">Trafik SEO’ya katkı sağlar mı?</h2>
+            <span class="cs_accordian_toggler cs_heading_color position-absolute"><i class="fa-solid fa-angles-right"></i></span>
+          </div>
+          <div class="cs_accordian_body">
+            <p>Organik ve doğal görünümlü trafik, sitede kalma süresi, sayfa görüntüleme ve hemen çıkma oranlarını iyileştirerek SEO’ya olumlu katkı sağlar.</p>
+          </div>
+        </div>
+        <div class="cs_accordian cs_style_1 cs_white_bg cs_type_1">
+          <div class="cs_accordian_head position-relative">
+            <h2 class="cs_accordian_title cs_fs_18 cs_semibold mb-0">Google Ads’e zarar verir mi?</h2>
+            <span class="cs_accordian_toggler cs_heading_color position-absolute"><i class="fa-solid fa-angles-right"></i></span>
+          </div>
+          <div class="cs_accordian_body">
+            <p>Hayır. Trafik bot sistemimiz yalnızca organik ya da referans trafiğe yöneliktir. Google reklamlarınızı etkilemez, tıklama yapmaz.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="cs_accordian cs_style_1 cs_white_bg cs_type_1">
+          <div class="cs_accordian_head position-relative">
+            <h2 class="cs_accordian_title cs_fs_18 cs_semibold mb-0">Trafik kaynaklarını seçebiliyor muyum?</h2>
+            <span class="cs_accordian_toggler cs_heading_color position-absolute"><i class="fa-solid fa-angles-right"></i></span>
+          </div>
+          <div class="cs_accordian_body">
+            <p>Evet, organik, direkt, sosyal medya, backlink gibi kaynaklar arasında seçim yapabilir ve özel trafik senaryoları oluşturabilirsiniz.</p>
+          </div>
+        </div>
+        <div class="cs_accordian cs_style_1 cs_white_bg cs_type_1">
+          <div class="cs_accordian_head position-relative">
+            <h2 class="cs_accordian_title cs_fs_18 cs_semibold mb-0">Analytics’te bu trafik görünür mü?</h2>
+            <span class="cs_accordian_toggler cs_heading_color position-absolute"><i class="fa-solid fa-angles-right"></i></span>
+          </div>
+          <div class="cs_accordian_body">
+            <p>Evet, tüm trafik verileriniz Google Analytics ve benzeri analiz araçlarında detaylı şekilde görünür. UTM parametreleri de eklenebilir.</p>
+          </div>
+        </div>
+        <div class="cs_accordian cs_style_1 cs_white_bg cs_type_1">
+          <div class="cs_accordian_head position-relative">
+            <h2 class="cs_accordian_title cs_fs_18 cs_semibold mb-0">Kendi backlink sitelerimi kullanabilir miyim?</h2>
+            <span class="cs_accordian_toggler cs_heading_color position-absolute"><i class="fa-solid fa-angles-right"></i></span>
+          </div>
+          <div class="cs_accordian_body">
+            <p>Evet, kendi backlink içeriklerinizden trafik akışı sağlayabiliriz. Sadece bağlantı URL’lerini sisteme girmeniz yeterlidir.</p>
+          </div>
+        </div>
+        <div class="cs_accordian cs_style_1 cs_white_bg cs_type_1">
+          <div class="cs_accordian_head position-relative">
+            <h2 class="cs_accordian_title cs_fs_18 cs_semibold mb-0">Trafik ne kadar sürede başlar?</h2>
+            <span class="cs_accordian_toggler cs_heading_color position-absolute"><i class="fa-solid fa-angles-right"></i></span>
+          </div>
+          <div class="cs_accordian_body">
+            <p>Ödeme ve kurulum tamamlandıktan sonra genellikle aynı gün içerisinde trafik akışı başlar. Otomasyon sistemimiz hızlıdır.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="cs_height_120 cs_height_lg_80"></div>
+</section>
+<!-- End FAQ Section -->
+
+    <!-- Start Footer Section -->
+    <footer class="cs_footer cs_style_1 cs_bg_filed cs_heading_bg position-relative" data-src="assets/img/footer_bg_1.jpg">
+      <div class="cs_footer_top position-relative z-1">
+        <div class="container-fluid">
+          <div class="cs_footer_content">
+            <div class="cs_footer_top_content">
+              <div class="wow fadeInLeft">HEMEN TIKLA</div>
+              <a href="contact.html" class="cs_footer_top_img cs_radius_50 wow zoomIn">
+              <img src="assets/img/footer_img_icon.png" alt="Link image">
+              <span class="cs_center">
+              <img src="assets/img/icons/arrow_right_2.svg" alt="Arrow icon">
+              </span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="cs_main_footer cs_white_color_2 position-relative z-1">
+        <div class="container-fluid">
+          <div class="cs_footer_content cs_footer_row">
+            <div class="cs_footer_widget cs_footer_text">
+              <div class="cs_text_widget">
+                <img src="assets/img/footer_logo.svg" alt="Logo" class="cs_mb_30 wow zoomIn">
+                <p class="cs_mb_37">Profesyonel SEO çözümleri, backlink hizmetleri ve hit bot sistemleriyle web sitenizi Google’da zirveye taşıyoruz. Hedefe odaklı, etkili dijital yükseliş şimdi başlasın.</p>
+              </div>
+              <div class="cs_social_btns cs_style_1">
+                <a href="https://youtube.com/@trendtopiktr" aria-label="Social link" class="cs_center cs_radius_50">
+                <i class="fa-brands fa-facebook-f"></i>
+                </a>
+                <a href="https://youtube.com/@trendtopiktr" aria-label="Social link" class="cs_center cs_radius_50">
+                <i class="fa-brands fa-x-twitter"></i>
+                </a>
+                <a href="https://youtube.com/@trendtopiktr" aria-label="Social link" class="cs_center cs_radius_50">
+                <i class="fa-brands fa-linkedin-in"></i>
+                </a>
+                <a href="https://youtube.com/@trendtopiktr" aria-label="Social link" class="cs_center cs_radius_50">
+                <i class="fa-brands fa-youtube"></i>
+                </a>
+              </div>
+            </div>
+            <div class="cs_footer_links_wrapper">
+              <div class="cs_footer_widget">
+                <h2 class="cs_footer_widget_title cs_fs_24 cs_semibold cs_white_color cs_mb_27 position-relative">Hızlı Bağlantılar</h2>
+                <ul class="cs_footer_menu cs_mp_0">
+                  <li><a href="about-us.html" aria-label="Page link">Hakkımızda</a></li>
+                  <li><a href="pricing.html" aria-label="Page link">Hizmetler</a></li>
+                  <li><a href="faqs.html" aria-label="Page link">SSS</a></li>
+                  <li><a href="contact.html" aria-label="Page link">Bize Ulaşın</a></li>
+                </ul>
+              </div>
+              <div class="cs_footer_widget">
+                <h2 class="cs_footer_widget_title cs_fs_24 cs_semibold cs_white_color cs_mb_27 position-relative">Bize Ulaşın</h2>
+              
+                <h3 class="cs_fs_16 cs_white_color cs_mb_10">Telegram:</h3>
+                <ul class="cs_footer_contact_list cs_mp_0">
+                  <li>
+                    <a href="https://t.me/trendtopiktr" aria-label="Phone call link">Telegram-1</a>
+                  </li>
+                  <li>
+                    <a href="https://t.me/trendtopiktr" aria-label="Phone call link">Telegram-2</a>
+                  </li>
+                </ul>
+              </div>
+              <div class="cs_footer_widget">
+                <h2 class="cs_footer_widget_title cs_fs_24 cs_semibold cs_white_color cs_mb_27 position-relative">Bültenimize katılın</h2>
+                <p class="cs_mb_27">Sizi geliştirecek ipuçları, kampanyalar ve özel fırsatlarla dolu e-postalar almak ister misiniz?
+</p>
+                <div class="cs_footer_newsletter cs_style_1">
+                  <form action="contact.html" class="cs_footer_newsletter_form cs_radius_8">
+                    <input type="text" placeholder="E-posta Adresinizi Girin  ">
+                    <button aria-label="Subscribe button" class="cs_btn cs_style_1 cs_center">
+                    <span><i class="fa-regular fa-paper-plane"></i></span>
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="cs_footer_bottom cs_white_color_2 position-relative z-1">
+        <div class="container-fluid">
+          <div class="cs_footer_bottom_in cs_footer_content">
+            <div class="cs_footer_copyright">&copy; 2025 Tüm Hakları Saklıdır. <a href="https://trendtopik.com" aria-label="Site link">Trendtopik</a></div>
+
+            <div>
+              <ul class="cs_footer_menu cs_mp_0">
+                <li><a href="#" aria-label="Footer link">Kullanım Şartları</a></li>
+                <li><a href="#" aria-label="Footer link">Gizlilik Politikası</a></li>
+                
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="cs_footer_shape_1 position-absolute">
+        <img src="assets/img/footer_shape_1.svg" alt="Shape image">
+      </div>
+      <div class="cs_footer_shape_2 position-absolute">
+        <img src="assets/img/footer_shape_1.svg" alt="Shape image">
+      </div>
+    </footer>
+    <!-- End Footer Section -->
+    <!-- Start Scroll Up Button -->
+    <span class="cs_scrollup_btn cs_center cs_white_bg cs_white_color cs_radius_50">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 19V5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M19 12L12 5L5 12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </span>
+    <!-- End Scroll Up Button -->
+    <!-- Script -->
+    <script src="assets/js/jquery-3.7.1.min.js"></script>
+    <script src="assets/js/wow.min.js"></script>
+    <script src="assets/js/jquery.slick.min.js"></script>
+    <script src="assets/js/odometer.js"></script>
+    <script src="assets/js/main.js"></script>
+  </body>
+</html>
