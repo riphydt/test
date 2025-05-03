@@ -1,0 +1,700 @@
+/*--------------------------------------------------------------
+  12. Hero
+----------------------------------------------------------------*/
+.cs_hero.cs_style_1 {
+  padding: 160px 0 180px;
+
+  .cs_hero_title {
+    font-size: 110px;
+    margin-bottom: 97px;
+
+    span {
+      color: var(--accent-color);
+    }
+  }
+
+  .cs_hero_text_wrapper {
+    padding-left: 53%;
+    padding-right: 40px;
+
+    p {
+      margin-bottom: 53px;
+    }
+  }
+
+  .cs_hero_feature_wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 30px;
+  }
+
+  .cs_totating_logo {
+    width: 114px;
+    height: 114px;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    >img {
+      flex: none;
+      border-radius: inherit;
+      animation: circular-rotation 20s linear infinite;
+    }
+
+    .cs_logo_arrow {
+      width: 25px;
+      height: 25px;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%) rotate(-45deg);
+
+      img {
+        transform: translatex(-3px);
+        animation: indication-movement 2s linear infinite;
+      }
+    }
+  }
+
+  .cs_sales_info_wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .cs_hero_thumbnail {
+    padding: 37px 37px 0 0;
+    width: 50%;
+    height: 510px;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+
+    >img {
+      width: 100%;
+      height: 100%;
+    }
+
+    span {
+      right: 0;
+      top: 0;
+    }
+  }
+
+  .cs_hero_shape_1 {
+    top: -25px;
+    left: -57px;
+    animation: spinAnimation 10s linear infinite;
+  }
+
+  @media (max-width:1199px) {
+    padding: 120px 0 80px;
+
+    .cs_hero_thumbnail {
+      position: relative;
+      width: 100%;
+      height: auto;
+      padding-right: 0;
+      margin-bottom: 40px;
+    }
+
+    .cs_hero_title {
+      font-size: 80px;
+      margin-bottom: 20px;
+    }
+
+    .cs_hero_text_wrapper {
+      padding: 0;
+
+      p {
+        margin-bottom: 30px;
+      }
+    }
+  }
+
+  @media (max-width:767px) {
+    padding: 80px 0;
+
+    .cs_hero_title {
+      font-size: 56px;
+    }
+  }
+}
+
+.cs_hero.cs_style_2 {
+  padding: 251px 0 320px;
+
+  .cs_hero_content {
+    width: 100%;
+    max-width: 1482px;
+    margin: 0 auto;
+  }
+
+  .cs_hero_thumbnail {
+    position: absolute;
+    right: 11%;
+    bottom: 0;
+  }
+
+  .cs_reviewbox {
+    right: 53%;
+    bottom: 33%;
+  }
+
+  .cs_hero_text_wrapper {
+    width: 100%;
+    max-width: 830px;
+  }
+
+  .cs_hero_title {
+    font-size: 80px;
+    letter-spacing: -2.4px;
+  }
+
+  .cs_about_btn_group {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+
+  .cs_btn.cs_style_1 {
+    background-color: rgba(255, 255, 255, 0.15);
+  }
+
+  .cs_reel_btn {
+    color: var(--white-color);
+    display: flex;
+    align-items: center;
+
+    span:first-child {
+      width: 47px;
+      height: 47px;
+      padding: 8px 10px 8px 10px;
+      background-image: url("../img/half_circle_line.svg");
+      background-repeat: no-repeat;
+      background-position: left;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    span:last-child {
+      position: relative;
+
+      &::after {
+        content: "";
+        width: 0%;
+        height: 1px;
+        background-color: currentColor;
+        position: absolute;
+        left: 0;
+        top: 100%;
+        transition: all 0.3s ease;
+      }
+    }
+
+    &:hover {
+      span:last-child {
+
+        &::after {
+          content: "";
+          width: 100%;
+        }
+      }
+    }
+  }
+
+  .cs_marketing_graph_content_wrapper {
+    width: 200px;
+    height: 180px;
+    border-radius: 10px;
+    top: 30%;
+    right: 8%;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: inherit;
+    }
+  }
+
+  .cs_hero_shape_1 {
+    right: 0;
+    bottom: 15px;
+
+    img {
+      animation: move-alternate 10s linear infinite;
+    }
+  }
+
+  @media (max-width:1399px) {
+    .cs_hero_thumbnail {
+      right: 6%;
+    }
+  }
+
+  @media (max-width:1199px) {
+    .cs_hero_thumbnail {
+      right: 0;
+    }
+
+    .cs_reviewbox {
+      right: 48%;
+      bottom: 17%;
+    }
+
+    .cs_marketing_graph_content_wrapper {
+      top: 60%;
+      right: 4%;
+    }
+
+    .cs_hero_title {
+      font-size: 75px;
+    }
+  }
+
+  @media (max-width:991px) {
+    padding: 120px 0 80px;
+
+    .cs_hero_thumbnail {
+      position: initial;
+      margin-bottom: 40px;
+    }
+
+    .cs_reviewbox {
+      display: none;
+    }
+
+    .cs_marketing_graph_content_wrapper {
+      display: none;
+    }
+
+    .cs_hero_title {
+      font-size: 70px;
+    }
+  }
+
+  @media (max-width:767px) {
+
+    .cs_hero_title {
+      font-size: 54px;
+    }
+  }
+
+  @media (max-width:500px) {
+    .cs_hero_shape_1 {
+      display: none;
+    }
+  }
+}
+
+.cs_hero.cs_style_3 {
+  padding: 340px 0 190px;
+
+  .cs_hero_content {
+    width: 100%;
+    max-width: 1482px;
+    margin: 0 auto;
+  }
+
+  .cs_hero_text {
+    max-width: 1174px;
+    position: relative;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .cs_hero_title {
+    display: flex;
+    gap: 35px 40px;
+    flex-wrap: wrap;
+    font-size: 110px;
+    line-height: 1em;
+    letter-spacing: -2.4px;
+
+    .cs_stroke_text {
+      -webkit-text-stroke: 1px var(--white-color);
+      color: transparent;
+    }
+  }
+
+  .cs_hero_subtitle {
+    opacity: 0.9;
+  }
+
+  .cs_btn.cs_style_1 {
+    padding: 21px 30px;
+    background: rgba(255, 255, 255, 0.20);
+    pointer-events: all;
+  }
+
+  .cs_video_block.cs_style_2 {
+    width: 521px;
+    min-height: 138px;
+    border-radius: 100px;
+
+    .cs_player_btn {
+      width: 60px;
+      height: 60px;
+      padding-left: 4px;
+      background: radial-gradient(157.24% 123.22% at 47.19% -0.63%, rgba(255, 255, 255, 0.40) 0%, rgba(255, 255, 255, 0.00) 100%);
+      backdrop-filter: blur(25px);
+      border: 1px solid var(--white-color);
+      pointer-events: all;
+
+      &:before {
+        width: 40px;
+        height: 40px;
+        animation: none;
+        opacity: 1;
+      }
+    }
+  }
+
+
+
+  .cs_btn_group,
+  .cs_client_info_wrapper {
+    display: flex;
+    align-items: center;
+    gap: 38px;
+    flex-wrap: wrap;
+  }
+
+  .cs_client_info_wrapper {
+    gap: 12px;
+  }
+
+
+  .cs_hero_slider_wrapper {
+    width: 50%;
+    max-width: 870px;
+    position: absolute;
+    top: 150px;
+    right: 0;
+    z-index: 0;
+  }
+
+  .cs_slider_item {
+    position: relative;
+
+    &::after {
+      content: "";
+      width: 100%;
+      height: 100%;
+      background: rgba(22, 35, 64, 0.15);
+      position: absolute;
+      right: 0;
+      top: 0;
+    }
+
+    img {
+      width: 100%;
+    }
+  }
+
+  .cs_slider.cs_style_1 {
+    &::after {
+      content: "";
+      width: 75%;
+      height: calc(100% - 80px);
+      background-color: var(--accent-color);
+      position: absolute;
+      right: 0;
+      bottom: -28px;
+      z-index: 0;
+    }
+
+    >* {
+      position: relative;
+      z-index: 1;
+    }
+  }
+
+  @media (max-width:1399px) {
+    padding: 160px 0 120px;
+
+    .cs_pagination.cs_style_1 ul {
+      margin-left: 20px;
+    }
+  }
+
+  @media (max-width:1199px) {
+    .cs_hero_text {
+      margin-bottom: 40px;
+    }
+
+    .cs_hero_title {
+      font-size: 75px;
+    }
+
+    br {
+      display: none;
+    }
+
+    .cs_hero_slider_wrapper {
+      position: initial;
+      width: 100%;
+      max-width: 100%;
+    }
+  }
+
+  @media (max-width:991px) {
+    .cs_hero_title {
+      font-size: 70px;
+    }
+  }
+
+  @media (max-width:767px) {
+    padding: 160px 0 80px;
+
+    .cs_hero_title {
+      font-size: 54px;
+    }
+
+    .cs_slider.cs_style_1::after {
+      display: none;
+    }
+
+    .cs_pagination.cs_style_1 ul {
+      margin-left: 0;
+      justify-content: center;
+    }
+  }
+}
+
+@media (min-width:1200px) {
+  .container {
+    max-width: 1170px;
+  }
+}
+
+/*--------------------------------------
+ Hero Sidebar
+----------------------------------------*/
+.cs_hero_sidebar {
+  height: 100%;
+  width: 260px;
+  padding: 220px 0 100px;
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 40px;
+
+  .cs_video.cs_style_1 {
+    width: 120px;
+    height: 120px;
+    overflow: hidden;
+    position: relative;
+
+    .cs_video_bg {
+      border-radius: inherit;
+      position: absolute;
+      left: 0;
+      top: 0;
+      transition: all 0.5s ease-in-out;
+    }
+
+    &:hover {
+      .cs_video_bg {
+        transform: scale(1.06);
+      }
+    }
+  }
+
+  .cs_clients_info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .cs_clients_heading,
+  h3 {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .cs_market_info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .cs_social_links {
+    position: absolute;
+    top: 252px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 17px;
+
+    a {
+      display: flex;
+      writing-mode: vertical-lr;
+      padding-bottom: 14px;
+      position: relative;
+
+      &::after {
+        content: "";
+        width: 1px;
+        height: 17px;
+        background: #3A3D44;
+        writing-mode: vertical-lr;
+        position: absolute;
+        right: 50%;
+        bottom: 0;
+        transform: translateX(-50%);
+      }
+
+      .cs_social_text {
+        color: rgba(#17012C, 0.5)
+      }
+
+      .cs_social_icon {
+        width: 32px;
+        height: 32px;
+        margin-top: -15px;
+        visibility: hidden;
+        opacity: 0;
+        transition: all 0.3s ease;
+      }
+
+      &:last-child::after {
+        display: none;
+      }
+
+      &:hover {
+        .cs_social_icon {
+          visibility: visible;
+          opacity: 1;
+        }
+      }
+    }
+  }
+
+  @media (min-width:1800px) {
+    width: 360px;
+
+    .cs_social_links {
+      right: 80px;
+    }
+  }
+
+  @media (max-width:1199px) {
+    display: none;
+  }
+}
+
+/*--------------------------------------
+ Rounded Progressbar
+----------------------------------------*/
+.cs_round_progress_wrap {
+  height: 62px;
+  width: 62px;
+  background-color: var(--white-color);
+  border-radius: 50%;
+  position: relative;
+  bottom: 0;
+  z-index: 3;
+  margin: auto;
+}
+
+.cs_round_progress_in {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  text-align: center;
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    left: 0;
+    top: 0;
+    border-radius: 50%;
+    border: 14px solid #FFF0E2;
+  }
+}
+
+.cs_round_progress_number {
+  padding-top: 3px;
+  display: flex;
+  align-items: center;
+}
+
+.cs_round_progress {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #FFAB61;
+
+  svg {
+    width: 62px;
+    height: 62px;
+  }
+
+  .cs_round_progress_percentage {
+    stroke-width: 20px;
+  }
+}
+
+.cs_round_progress_percentage {
+  transform: rotate(-81deg);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 8;
+  stroke-dasharray: 0 999;
+  transition: all 1s ease-in-out;
+  stroke-width: 4px;
+}
+
+.cs_round_progress_list {
+  .cs_round_progress_title {
+    margin-top: 20px;
+  }
+}
+
+/*-------------------------------------
+ Animations
+---------------------------------------*/
+@keyframes circular-rotation {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes indication-movement {
+  50% {
+    transform: translatex(3px);
+  }
+}
+
+@keyframes spinAnimation {
+  0% {
+    transform: rotateY(0deg);
+  }
+
+  75% {
+    transform: rotateY(360deg);
+  }
+
+  100% {
+    transform: rotateY(360deg);
+  }
+}

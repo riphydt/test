@@ -1,0 +1,40 @@
+/*--------------------------------------------------------------
+  16. Counter
+----------------------------------------------------------------*/
+
+.cs_counter_wrapper {
+  padding: 63px 30px 62px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  &.cs_bg_gradient {
+    background: linear-gradient(181deg, rgba(255, 251, 249, 0.00) -121.39%, #FFF 98.8%);
+  }
+
+  &.cs_type_1 {
+    align-items: flex-start;
+    padding: 0;
+  }
+
+  @media (max-width:991px) {
+    padding: 30px;
+  }
+}
+
+.cs_counter_grid_1 {
+  display: grid;
+  grid-template-columns: repeat(4, auto);
+  justify-content: space-between;
+  gap: 30px;
+
+  @media (max-width:767px) {
+    grid-template-columns: repeat(2, auto);
+    justify-content: center;
+    gap: 30px 100px;
+  }
+
+  @media (max-width:440px) {
+    grid-template-columns: repeat(1, auto);
+  }
+}

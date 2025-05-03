@@ -1,0 +1,248 @@
+/*--------------------------------------------------------------
+  17. Casestudie
+----------------------------------------------------------------*/
+.cs_case_shape_1 {
+  top: 0;
+  right: 80%;
+}
+
+.cs_case_shape_2 {
+  top: 10%;
+  left: 0;
+}
+
+.cs_case_shape_3 {
+  left: 0;
+  bottom: 120px;
+}
+
+.cs_case_shape_4 {
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+}
+
+.cs_award_shape_1 {
+  left: 4%;
+  bottom: 160px;
+  animation: spinAnimation 10s linear infinite;
+}
+
+.cs_award_shape_2 {
+  left: 80%;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/*----------------------------------
+  Projects
+------------------------------------*/
+.cs_project_content {
+  padding: 60px 15px;
+
+  @media (max-width:991px) {
+    padding: 0;
+  }
+}
+
+.cs_project_heading {
+  width: 50%;
+  max-width: 545px;
+  margin: 0 auto;
+
+  @media (max-width:991px) {
+    width: 100%;
+  }
+}
+
+.cs_project_thumbnail_wrapper {
+  gap: 40px;
+
+  .cs_project_thumbnail {
+    position: absolute;
+    top: 0;
+
+    &::before {
+      content: "";
+      width: 100%;
+      height: 100%;
+      background-color: var(--blue-color);
+      opacity: 0.6;
+      border-radius: inherit;
+      position: absolute;
+      left: 0;
+      top: 0;
+      transform: rotate(-8deg);
+    }
+
+    &:nth-child(1) {
+      left: 0;
+      transform: rotate(-4deg);
+    }
+
+    &:nth-child(2) {
+      right: 0;
+      transform: rotate(4deg);
+
+      &::before {
+        transform: rotate(8deg);
+      }
+    }
+
+    img {
+      border-radius: inherit;
+      position: relative;
+      z-index: 1;
+    }
+  }
+
+  @media (max-width:1199px) {
+
+    .cs_project_thumbnail {
+      transform: rotate(0) !important;
+
+      &:nth-child(1) {
+        &::before {
+          transform: translateX(8px) rotate(4deg);
+        }
+      }
+
+      &:nth-child(2) {
+        right: 0;
+        transform: rotate(4deg);
+
+        &::before {
+          transform: translateX(-8px) rotate(-4deg);
+        }
+      }
+    }
+  }
+
+  @media (max-width:991px) {
+    margin-bottom: 30px;
+
+    .cs_project_thumbnail {
+      position: initial;
+    }
+  }
+}
+
+/*------------------------------------------
+ Case study details page
+--------------------------------------------*/
+.cs_casestudy_setails {
+  .cs_casestudy_thumbnail {
+    width: 100%;
+    height: 100%;
+    margin-bottom: 75px;
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+  }
+
+  h2 {
+    font-size: 30px;
+    font-weight: 600;
+    line-height: 1.2em;
+    margin-bottom: 16px;
+  }
+
+  p {
+    margin-bottom: 50px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  .cs_project_infobox {
+    padding: 38px 40px 40px;
+    position: absolute;
+    top: 60px;
+    right: 60px;
+    box-shadow: 0px 9px 37px 0px rgba(0, 0, 0, 0.07);
+  }
+
+  .cs_project_info_list {
+    li {
+      padding: 21px 0;
+      display: flex;
+      gap: 20px;
+      border-bottom: 1px solid #E7EBF6;
+
+      &:first-child {
+        padding-top: 0;
+      }
+
+      &:last-child {
+        border: 0;
+        padding-bottom: 0;
+      }
+    }
+
+    .cs_project_info_icon {
+      width: 50px;
+      height: 50px;
+      flex: none;
+
+      &::before {
+        content: "";
+        width: 100%;
+        height: 100%;
+        background-color: var(--blue-color);
+        opacity: 0.1;
+        border-radius: inherit;
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+    }
+
+    h3 {
+      margin-top: -2px;
+    }
+  }
+
+  @media (max-width:991px) {
+    .cs_casestudy_thumbnail {
+      margin-bottom: 20px;
+    }
+
+    p:not(:last-child) {
+      margin-bottom: 40px;
+    }
+
+    .cs_project_infobox {
+      position: initial;
+      transform: translateY(-50px);
+    }
+  }
+
+  @media (max-width:575px) {
+    .cs_project_infobox {
+      padding: 30px 15px;
+    }
+  }
+}
+
+.cs_another_projects {
+  margin-top: 52px;
+
+  .cs_project_card {
+    img {
+      width: 100%;
+      height: 100%;
+      border-radius: inherit;
+    }
+  }
+}
+
+.cs_slider_footer {
+  padding: 30px 0;
+  border-top: 1px solid #EDEDED;
+  border-bottom: 1px solid #EDEDED;
+  margin-top: 80px;
+}

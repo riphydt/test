@@ -1,0 +1,235 @@
+/*--------------------------------------------------------------
+  18. Team
+----------------------------------------------------------------*/
+.cs_team.cs_style_1 {
+  width: 100%;
+  height: 100%;
+  padding-bottom: 50px;
+
+  .cs_team_thumbnail {
+    width: 100%;
+    height: 100%;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: inherit;
+    }
+  }
+
+  .cs_tean_info {
+    padding: 20px 12px;
+    width: 100%;
+    max-width: 240px;
+    background-color: #F6F3FE;
+    box-shadow: 0px 6px 30px 0px rgba(0, 0, 0, 0.08);
+    border-bottom: 4px solid var(--blue-color);
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    transition: all 0.4s ease;
+
+    h3,
+    p {
+      transition: inherit;
+    }
+  }
+
+  .cs_social_links {
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    background-color: #F5F5F4;
+    gap: 8px;
+    top: 40px;
+    right: 0;
+    transform: translateY(20px);
+    visibility: hidden;
+    opacity: 0;
+    z-index: 1;
+    transition: all 0.3s ease-in-out;
+
+    .cs_social_link {
+      width: 44px;
+      height: 44px;
+      padding: 12px;
+      background-color: #F5F5F4;
+      border: 1px solid rgba(23, 1, 44, 0.25);
+      color: var(--heading-color);
+      transition: all 0.3s ease;
+
+      &:hover {
+        background-color: var(--blue-color);
+        color: var(--white-color);
+        border-color: var(--blue-color);
+      }
+    }
+  }
+
+  &:hover {
+    .cs_social_links {
+      visibility: visible;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .cs_tean_info {
+      background-color: var(--blue-color);
+
+      h3 a,
+      p {
+        color: var(--white-color);
+      }
+
+      p {
+        opacity: 0.8;
+      }
+    }
+  }
+}
+
+.cs_team.cs_style_2 {
+  padding: 16px 16px 27px;
+  box-shadow: 0px 4px 50px 0px rgba(0, 0, 0, 0.08);
+
+  .cs_team_thumbnail {
+    img {
+      width: 100%;
+      border-radius: inherit;
+    }
+  }
+
+  .cs_social_links {
+    bottom: 30px;
+    right: 30px;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .cs_social_link {
+    &:last-child {
+      width: 48px;
+      height: 48px;
+      border: 6px solid var(--blue-color);
+      color: var(--blue-color);
+      pointer-events: none;
+    }
+
+    &:not(:last-child) {
+      width: 36px;
+      height: 36px;
+      color: var(--heading-color);
+      background-color: var(--white-color);
+      box-shadow: 0px 4px 15px 0px rgba(0, 0, 0, 0.08);
+      transform: translateY(25px) scale(0);
+      opacity: 0;
+
+      &:hover {
+        background-color: var(--blue-color);
+        color: var(--white-color);
+      }
+    }
+
+  }
+
+  .cs_tean_info {
+    padding: 17px 0 0 16px;
+
+    h3 {
+      letter-spacing: -0.88px;
+    }
+
+    a:hover {
+      color: var(--blue-color);
+    }
+
+  }
+
+  &:hover {
+    .cs_social_link {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+    }
+  }
+}
+
+.cs_team_shape_1 {
+  width: 393px;
+  height: 227px;
+  flex-shrink: 0;
+  border-radius: 393px;
+  background: #0FF;
+  filter: blur(150px);
+  opacity: 0.5;
+  top: 50%;
+  left: 95%;
+  transform: translateY(-50%);
+}
+
+.cs_team_shape_2 {
+  left: 0;
+  top: 40%;
+}
+
+/*--------------------------------------
+ Team details page
+----------------------------------------*/
+.cs_team_details {
+  h2 {
+    font-size: 36px;
+    margin-bottom: 25px;
+  }
+
+  p {
+    margin-bottom: 29px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  .cs_team_info_wrapper {
+    padding: 30px;
+    border: 1px solid #E5E5E5;
+    margin-bottom: 70px;
+  }
+
+  .cs_team_thumbnail {
+    width: 100%;
+    height: 100%;
+    padding-right: 48px;
+
+    img {
+      width: 100%;
+      height: 100%;
+      border-radius: inherit;
+    }
+  }
+
+  .cs_team_header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .cs_social_btns.cs_style_1 {
+    a {
+      width: 40px;
+      height: 40px;
+      color: var(--heading-color);
+      background-color: var(--white-color);
+      border: 0;
+      filter: drop-shadow(0px 4px 25px rgba(19, 76, 179, 0.15));
+
+      &:hover {
+        background-color: var(--blue-color);
+        color: var(--white-color);
+      }
+    }
+  }
+}
