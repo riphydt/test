@@ -1,6 +1,4 @@
 User-agent: *
-Disallow: /demo.html
-Allow: /index.html
-Allow: /
+Disallow: 
 
 Sitemap: https://trendtopik.com/sitemap.xml
