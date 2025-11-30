@@ -2,676 +2,687 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tumble Arena - Canlı Spikerli Online PvP</title>
-    <!-- Tailwind CSS -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tumble Arena - Sesli Spikerli PvP</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- React & Babel -->
+    <!-- React & Babel CDN'leri -->
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    <!-- Firebase Modülleri -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot, collection, query, setDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        
+        // Firestore'da hata ayıklama (debug) seviyesini aç
+        // setLogLevel('debug'); // Gerekirse açılabilir
 
+        // Firebase yapılandırmasını global değişkenlerden al
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        if (firebaseConfig) {
+            const app = initializeApp(firebaseConfig);
+            window.db = getFirestore(app);
+            window.auth = getAuth(app);
+            window.appId = appId;
+            window.signInWithCustomToken = signInWithCustomToken;
+            window.signInAnonymously = signInAnonymously;
+            window.onAuthStateChanged = onAuthStateChanged;
+            window.doc = doc;
+            window.onSnapshot = onSnapshot;
+            window.collection = collection;
+            window.query = query;
+            window.setDoc = setDoc;
+            window.updateDoc = updateDoc;
+            window.arrayUnion = arrayUnion;
+            window.arrayRemove = arrayRemove;
+        } else {
+            console.error("Firebase yapılandırması bulunamadı.");
+        }
+    </script>
     <style>
+      /* Temel stil ayarlamaları */
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
       body {
-        font-family: 'Rajdhani', sans-serif;
-        background-color: #050b14;
-        color: #e2e8f0;
-        overflow-x: hidden;
+        font-family: 'Inter', sans-serif;
+        background-color: #0f172a;
       }
-      .font-display { font-family: 'Black Ops One', system-ui; }
-      
-      /* Animasyonlar */
-      @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-      @keyframes glow { 0%, 100% { box-shadow: 0 0 5px #a855f7, 0 0 10px #a855f7; } 50% { box-shadow: 0 0 20px #22d3ee, 0 0 30px #22d3ee; } }
-      
-      .animate-float { animation: float 6s ease-in-out infinite; }
-      .animate-glow { animation: glow 3s infinite; }
-      
-      .glass-panel {
-        background: rgba(15, 23, 42, 0.7);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+      /* Grid öğeleri için custom animasyon */
+      .grid-cell-container {
+        transform-origin: center;
+        transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
       }
-
-      /* Scrollbar */
-      ::-webkit-scrollbar { width: 6px; }
-      ::-webkit-scrollbar-track { background: #0f172a; }
-      ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
-      ::-webkit-scrollbar-thumb:hover { background: #475569; }
+      .scale-0 { transform: scale(0); opacity: 0; }
+      .scale-100 { transform: scale(1); opacity: 1; }
+      
+      /* Özel kaydırma çubuğu stili */
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 8px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background-color: #475569; /* slate-600 */
+        border-radius: 4px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background-color: #1e293b; /* slate-800 */
+      }
     </style>
 </head>
 <body>
-    <div id="root"></div>
-
-    <!-- FIREBASE IMPORT -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, onSnapshot, updateDoc, serverTimestamp, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        
-        window.firebaseModules = {
-            initializeApp, getAuth, signInAnonymously, onAuthStateChanged, 
-            signInWithCustomToken, getFirestore, collection, doc, setDoc, 
-            onSnapshot, updateDoc, serverTimestamp, getDoc, deleteDoc
-        };
-    </script>
+    <div id="root" class="flex items-center justify-center min-h-screen p-4">
+        <!-- React uygulaması buraya render edilecek -->
+    </div>
 
     <script type="text/babel">
-        const { useState, useEffect, useRef, useMemo } = React;
-
-        // ==========================================
-        // ⚙️ AYARLAR (BURAYI KENDİ BİLGİLERİNİZLE DOLDURUN)
-        // ==========================================
+        const { useState, useEffect, useCallback, useMemo } = React;
         
-        // 1. Google Gemini API Anahtarı (Spiker için gerekli)
-        // https://aistudio.google.com/app/apikey adresinden alabilirsiniz.
-        const GEMINI_API_KEY = ""; // Örn: "AIzaSy..."
-
-        // 2. Firebase Konfigürasyonu (Online oyun için gerekli)
-        // https://console.firebase.google.com/ adresinden proje oluşturup web app ekleyerek alabilirsiniz.
-        const FIREBASE_CONFIG = {
-            apiKey: "DOLDURUN",
-            authDomain: "DOLDURUN.firebaseapp.com",
-            projectId: "DOLDURUN",
-            storageBucket: "DOLDURUN.firebasestorage.app",
-            messagingSenderId: "DOLDURUN",
-            appId: "DOLDURUN"
+        // --- Sabitler ve Yardımcı Fonksiyonlar ---
+        const API_KEY = ""; // Gemini API Anahtarı
+        const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent";
+        const TOTAL_CELLS = 49; // 7x7 grid
+        
+        // Firestore için yol oluşturucu
+        const getPublicCollectionRef = (db, appId, collectionName) => {
+            return db.collection(`/artifacts/${appId}/public/data/${collectionName}`);
         };
-        
-        // Eğer kod editöründe çalışıyorsa otomatik keyleri al (Sizin doldurmanıza gerek yok, bu satırı silmeyin)
-        const activeApiKey = typeof apiKey !== 'undefined' && apiKey ? apiKey : GEMINI_API_KEY;
-        const activeFirebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : FIREBASE_CONFIG;
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'tumble-arena-v1';
 
-        // ==========================================
-        // 🎵 SES MOTORU (WEB AUDIO API)
-        // ==========================================
-        class SoundEngine {
-            constructor() {
-                this.ctx = null;
-                this.bgmOscillators = [];
-                this.isMuted = false;
-                this.isMusicPlaying = false;
-            }
+        // Oturum Veri Yolunu Al
+        const getSessionDocRef = (db, appId, sessionId) => {
+            return window.doc(db, `/artifacts/${appId}/public/data/sessions/${sessionId}`);
+        };
 
-            init() {
-                if (!this.ctx) {
-                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-                }
-            }
+        // Basit SVG İKONLARI (lucide-react yerine) - Hata düzeltmesi için hayati
+        const ICONS = {
+            MessageSquare: ({ size = 24, className = '' }) => (
+                <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+            ),
+            RefreshCw: ({ size = 24, className = '' }) => (
+                <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                    <path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                </svg>
+            ),
+            Zap: ({ size = 24, className = '' }) => (
+                <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                </svg>
+            ),
+            User: ({ size = 24, className = '' }) => (
+                <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle>
+                </svg>
+            )
+        };
 
-            playTone(freq, type, duration, vol = 0.1) {
-                if (this.isMuted || !this.ctx) return;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = type;
-                osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-                gain.gain.setValueAtTime(vol, this.ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start();
-                osc.stop(this.ctx.currentTime + duration);
-            }
 
-            // UI Sesleri
-            playClick() { this.playTone(800, 'sine', 0.1, 0.05); }
-            playJoin() { this.playTone(400, 'triangle', 0.2, 0.1); setTimeout(() => this.playTone(600, 'triangle', 0.2, 0.1), 100); }
-            playSpin() { this.playTone(200 + Math.random()*200, 'square', 0.05, 0.03); }
-            playWin() { 
-                [0, 150, 300].forEach((delay, i) => {
-                    setTimeout(() => this.playTone(440 + (i*110), 'sawtooth', 0.5, 0.1), delay);
-                });
-            }
+        // --- Bileşenler ---
 
-            // Arka Plan Müziği (Drone Ambient)
-            toggleMusic() {
-                this.init();
-                if (this.isMusicPlaying) {
-                    this.bgmOscillators.forEach(o => {
-                        try { o.stop(); o.disconnect(); } catch(e){}
-                    });
-                    this.bgmOscillators = [];
-                    this.isMusicPlaying = false;
-                } else {
-                    if (this.isMuted) return;
-                    // Bas ve atmosferik drone sesi
-                    const freqs = [55, 110, 110.5]; // Binaural beat etkisi için hafif detune
-                    freqs.forEach(f => {
-                        const osc = this.ctx.createOscillator();
-                        const gain = this.ctx.createGain();
-                        osc.type = 'sine';
-                        osc.frequency.value = f;
-                        gain.gain.value = 0.03; // Çok düşük ses
-                        osc.connect(gain);
-                        gain.connect(this.ctx.destination);
-                        osc.start();
-                        this.bgmOscillators.push(osc);
-                    });
-                    this.isMusicPlaying = true;
-                }
-            }
+        // Lobi Ekranı Bileşeni
+        function Lobby({ players, onStart, onJoin, onLeave, userId, currentSessionId }) {
+            const hasJoined = players.some(p => p.id === userId);
+            const canStart = players.length >= 2;
+
+            const myPlayer = players.find(p => p.id === userId) || { name: 'Oyuncu' };
+            const username = myPlayer.name || 'Oyuncu';
+
+            return (
+                <div className="w-full max-w-sm bg-slate-800 rounded-xl shadow-2xl p-6">
+                    <h1 className="text-3xl font-extrabold text-white mb-2 text-center">Tumble Arena</h1>
+                    <p className="text-slate-400 text-center mb-6">Sesli Spikerli Çevrimiçi Arena</p>
+                    
+                    <div className="bg-slate-900 rounded-lg p-4 mb-4">
+                        <h2 className="text-lg font-semibold text-slate-300 mb-3 flex items-center">
+                             <ICONS.User size={18} className="mr-2 text-cyan-400" /> Katılımcılar ({players.length})
+                        </h2>
+                        <div className="space-y-2 max-h-40 overflow-y-auto custom-scrollbar pr-2">
+                            {players.map(p => (
+                                <div key={p.id} className={`flex items-center justify-between p-2 rounded-md transition ${p.id === userId ? 'bg-cyan-900/50 border border-cyan-500' : 'bg-slate-700'}`}>
+                                    <span className={`font-medium ${p.id === userId ? 'text-white' : 'text-slate-200'}`}>{p.name}</span>
+                                    <span className="text-xs text-slate-400 truncate w-24 text-right" title={p.id}>{p.id}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    
+                    <div className="space-y-3">
+                        {!hasJoined ? (
+                            <button 
+                                onClick={() => onJoin(username)} 
+                                className="w-full py-3 rounded-lg bg-cyan-600 hover:bg-cyan-500 font-bold text-white text-sm transition shadow-lg shadow-cyan-900/50"
+                            >
+                                ARENA'YA KATIL
+                            </button>
+                        ) : (
+                            <>
+                                <button 
+                                    onClick={onLeave} 
+                                    className="w-full py-3 rounded-lg bg-red-600 hover:bg-red-500 font-bold text-white text-sm transition"
+                                >
+                                    AYRIL
+                                </button>
+                                <button 
+                                    onClick={onStart} 
+                                    disabled={!canStart}
+                                    className={`w-full py-3 rounded-lg font-bold text-white text-sm transition ${canStart ? 'bg-purple-600 hover:bg-purple-500 shadow-lg shadow-purple-900/50' : 'bg-slate-700 cursor-not-allowed'}`}
+                                >
+                                    {canStart ? 'OYUNU BAŞLAT' : 'OYUN İÇİN MİN. 2 OYUNCU GEREKLİ'}
+                                </button>
+                            </>
+                        )}
+                    </div>
+                    
+                    <p className="text-xs text-slate-500 mt-4 text-center break-all">
+                        Oturum ID: <span className="font-mono text-slate-400">{currentSessionId}</span>
+                    </p>
+                </div>
+            );
         }
 
-        const audioManager = new SoundEngine();
+        // Oyun Ekranı Bileşeni
+        function Game({ players, grid, onReset, onCellClick, onGenerateShout, generatingShout, userId, winner }) {
+            const numColumns = Math.sqrt(TOTAL_CELLS);
+            const playerColors = useMemo(() => ({
+                1: 'bg-red-500 hover:bg-red-400',
+                2: 'bg-blue-500 hover:bg-blue-400',
+                3: 'bg-green-500 hover:bg-green-400',
+                4: 'bg-yellow-500 hover:bg-yellow-400',
+            }), []);
 
-        // ==========================================
-        // 🧠 GEMINI AI ENTEGRASYONU
-        // ==========================================
-        const pcmToWav = (base64PCM) => {
-            const binaryString = atob(base64PCM);
-            const len = binaryString.length;
-            const buffer = new ArrayBuffer(44 + len);
-            const view = new DataView(buffer);
-            const writeString = (view, offset, string) => {
-                for (let i = 0; i < string.length; i++) view.setUint8(offset + i, string.charCodeAt(i));
-            };
-            writeString(view, 0, 'RIFF');
-            view.setUint32(4, 36 + len, true);
-            writeString(view, 8, 'WAVE');
-            writeString(view, 12, 'fmt ');
-            view.setUint32(16, 16, true);
-            view.setUint16(20, 1, true);
-            view.setUint16(22, 1, true);
-            view.setUint32(24, 24000, true);
-            view.setUint32(28, 48000, true);
-            view.setUint16(32, 2, true);
-            view.setUint16(34, 16, true);
-            writeString(view, 36, 'data');
-            view.setUint32(40, len, true);
-            const bytes = new Uint8Array(buffer, 44);
-            for (let i = 0; i < len; i++) bytes[i] = binaryString.charCodeAt(i);
-            return new Blob([buffer], { type: 'audio/wav' });
-        };
+            return (
+                <div className="w-full max-w-lg bg-slate-800 rounded-xl shadow-2xl overflow-hidden flex flex-col">
+                    <div className="p-4 bg-slate-900 border-b border-slate-700 text-center">
+                        <h1 className="text-xl font-extrabold text-white">ARENA MÜCADELESİ</h1>
+                        <p className="text-sm text-slate-400">{winner ? 'Oyun Bitti!' : 'En çok alana sahip olan kazanır.'}</p>
+                    </div>
 
-        const generateSpeech = async (text, setAudioSrc) => {
-            if (!activeApiKey) return;
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${activeApiKey}`;
-            const payload = {
-                contents: [{ parts: [{ text: `Heyecanlı bir Türk spor spikeri gibi bağırarak söyle: ${text}` }] }],
-                generationConfig: {
-                    responseModalities: ["AUDIO"],
-                    speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Fenrir" } } }
-                }
-            };
-            try {
-                const response = await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)});
-                const data = await response.json();
-                if (data.candidates?.[0]?.content?.parts?.[0]?.inlineData) {
-                    const wavBlob = pcmToWav(data.candidates[0].content.parts[0].inlineData.data);
-                    const audioUrl = URL.createObjectURL(wavBlob);
-                    setAudioSrc(audioUrl);
-                }
-            } catch (error) { console.error("TTS Error:", error); }
-        };
+                    {/* Grid Alanı */}
+                    <div className="p-4 flex justify-center">
+                        <div 
+                            className="grid aspect-square bg-slate-900 border border-slate-700 rounded-xl shadow-inner shadow-slate-900/50 p-1"
+                            style={{ 
+                                gridTemplateColumns: `repeat(${numColumns}, 1fr)`, 
+                                width: '100%', 
+                                maxWidth: '400px'
+                            }}
+                        >
+                            {grid.map((cell, index) => {
+                                const playerIndex = players.findIndex(p => p.id === cell.ownerId);
+                                const isOwned = cell.ownerId !== null;
+                                const isMyCell = cell.ownerId === userId;
+                                const isWinnerCell = winner && cell.ownerId === winner.id;
+                                
+                                return (
+                                    <div 
+                                        key={index} 
+                                        className="grid-cell-container p-[2px]"
+                                        onClick={() => onCellClick(index)}
+                                    >
+                                        <div 
+                                            className={`w-full h-full rounded-md flex items-center justify-center text-xs font-bold transition-all duration-300 transform 
+                                                ${isOwned 
+                                                    ? playerColors[playerIndex + 1] + (isWinnerCell ? ' ring-4 ring-cyan-400/50' : '')
+                                                    : 'bg-slate-700 hover:bg-slate-600 cursor-pointer'
+                                                }
+                                                ${cell.isClicked ? 'scale-100' : 'scale-0'}`
+                                            }
+                                        >
+                                            {isOwned && <span className="text-white drop-shadow-sm">{cell.strength}</span>}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
 
-        const generateCommentaryText = async (prompt) => {
-             if (!activeApiKey) return "AI Key eksik.";
-             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${activeApiKey}`;
-             try {
-                const response = await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) });
-                const data = await response.json();
-                return data.candidates?.[0]?.content?.parts?.[0]?.text || "İnanılmaz bir maç!";
-             } catch (e) { return "Bağlantı hatası."; }
-        };
+                    {/* Skor ve Kontroller */}
+                    <div className="p-4 bg-slate-900 border-t border-slate-700">
+                        <h2 className="text-lg font-bold text-slate-200 mb-3">Skor Tablosu</h2>
+                        <div className="space-y-2 mb-4">
+                            {players.map((p, index) => {
+                                const winner = players.reduce((max, player) => (player.score > max.score ? player : max), { score: -1 });
+                                return (
+                                    <div key={p.id} className={`relative flex items-center justify-between p-3 rounded-xl transition-all duration-300 ${p.id === userId ? 'bg-cyan-900/50' : 'bg-slate-700'}`}>
+                                        <div className="flex items-center gap-3">
+                                            <span className={`w-3 h-3 rounded-full ${playerColors[index + 1].split(' ')[0]}`}></span>
+                                            <span className={`font-semibold ${p.id === userId ? 'text-white' : 'text-slate-200'}`}>{p.name} {p.id === userId && '(Siz)'}</span>
+                                        </div>
+                                        <div className="flex items-center gap-4">
+                                            <span className={`text-xl font-extrabold ${p.id === userId ? 'text-cyan-400' : 'text-white'}`}>{p.score}</span>
+                                            {p.score === winner.score && winner.score > 0 && <ICONS.Zap size={16} className="text-yellow-400 drop-shadow-lg" />}
+                                        </div>
+                                        
+                                        {/* Hype/Spiker Butonu */}
+                                        {p.id === userId && !generatingShout && !winner && (
+                                            <button 
+                                                onClick={onGenerateShout} 
+                                                disabled={generatingShout}
+                                                className="absolute top-1/2 -translate-y-1/2 right-2 px-2 py-1 bg-slate-800/80 backdrop-blur-sm rounded-full text-xs font-medium flex items-center gap-1 text-slate-300 transition hover:bg-slate-700/80"
+                                            >
+                                                {generatingShout ? <ICONS.RefreshCw size={10} className="animate-spin"/> : <ICONS.MessageSquare size={10} />}
+                                                ✨ Hype Ver!
+                                            </button>
+                                        )}
+                                        
+                                        {/* Skor Çubuğu */}
+                                        {winner && winner.score > 0 && (
+                                            <div className="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-cyan-500 to-purple-500 transition-all duration-700 rounded-b-xl" style={{ width: `${Math.min(100, (p.score / winner.score) * 100)}%` }}></div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        <button onClick={onReset} className="w-full py-3 rounded-lg bg-slate-700 hover:bg-slate-600 font-bold text-sm text-slate-300 transition">LOBİYE GERİ DÖN</button>
+                    </div>
+                </div>
+            );
+        }
 
-        // ==========================================
-        // 🎮 OYUN BİLEŞENLERİ (REACT)
-        // ==========================================
-
-        const SYMBOLS = [
-            { id: 'skull', icon: '💀', val: 10, color: 'text-gray-400' },
-            { id: 'bolt',  icon: '⚡', val: 20, color: 'text-yellow-400' },
-            { id: 'fire',  icon: '🔥', val: 30, color: 'text-orange-500' },
-            { id: 'gem',   icon: '💎', val: 50, color: 'text-cyan-400' },
-            { id: 'crown', icon: '👑', val: 100, color: 'text-yellow-500' },
-            { id: 'wild',  icon: '🃏', val: 200, color: 'text-purple-500' },
-        ];
-
+        // Ana Uygulama Bileşeni
         function App() {
-            const [view, setView] = useState('splash'); // splash | menu | lobby | game
-            const [user, setUser] = useState(null);
-            const [roomCode, setRoomCode] = useState('');
-            const [players, setPlayers] = useState([]);
-            const [roomData, setRoomData] = useState(null);
-            const [db, setDb] = useState(null);
-            const [error, setError] = useState('');
+            const [isAuthReady, setIsAuthReady] = useState(false);
+            const [userId, setUserId] = useState(null);
+            const [currentSessionId] = useState('tumble-arena-session-1'); // Sabit oturum ID'si
+            const [sessionData, setSessionData] = useState(null);
+            const [generatingShout, setGeneratingShout] = useState(false);
+            const [currentShout, setCurrentShout] = useState('');
+            const [audioQueue, setAudioQueue] = useState([]);
 
-            // Firebase Init
+
+            // --- Firebase ve Kimlik Doğrulama ---
             useEffect(() => {
-                const { initializeApp, getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken, getFirestore } = window.firebaseModules;
-                
-                try {
-                    const app = initializeApp(activeFirebaseConfig);
-                    const auth = getAuth(app);
-                    const firestore = getFirestore(app);
-                    setDb(firestore);
-
-                    const initAuth = async () => {
-                         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                const initializeFirebase = async () => {
+                    const { auth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } = window;
+                    
+                    if (!auth) {
+                        console.error("Firebase Auth yüklenemedi.");
+                        return;
+                    }
+                    
+                    try {
+                        // Özel token ile giriş yap veya anonim olarak devam et
+                        if (typeof __initial_auth_token !== 'undefined') {
                             await signInWithCustomToken(auth, __initial_auth_token);
-                         } else {
+                        } else {
                             await signInAnonymously(auth);
-                         }
-                    };
-                    initAuth();
-                    onAuthStateChanged(auth, setUser);
-                } catch (e) {
-                    setError("Firebase Ayarları Hatalı! Kod içerisindeki FIREBASE_CONFIG alanını doldurunuz.");
+                        }
+                    } catch (error) {
+                        console.error("Kimlik doğrulama hatası:", error);
+                        await signInAnonymously(auth); // Hata durumunda anonim dene
+                    }
+
+                    // Kimlik doğrulama durumunu dinle
+                    const unsubscribe = onAuthStateChanged(auth, user => {
+                        if (user) {
+                            setUserId(user.uid);
+                        } else {
+                            // Anonim kullanıcı veya başka bir kimlik doğrulama yolu
+                            setUserId(auth.currentUser?.uid || crypto.randomUUID());
+                        }
+                        setIsAuthReady(true);
+                    });
+
+                    return () => unsubscribe();
+                };
+
+                if (window.auth) {
+                    initializeFirebase();
+                } else {
+                    // Firebase CDN'lerinin yüklenmesini bekle
+                    setTimeout(initializeFirebase, 500);
                 }
             }, []);
 
-            // Oda Dinleyicisi
+            // --- Firestore Veri Dinleme ---
             useEffect(() => {
-                if (!db || !roomCode) return;
-                const { onSnapshot, doc, collection } = window.firebaseModules;
+                if (!isAuthReady || !window.db) return;
                 
-                const unsubRoom = onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomCode), (snap) => {
-                    if (snap.exists()) {
-                        const data = snap.data();
-                        setRoomData(data);
-                        if (data.status === 'playing' && view !== 'game') setView('game');
-                        if (data.status === 'waiting' && view === 'game') setView('lobby');
-                    } else if (view !== 'menu') {
-                        setView('menu'); 
-                        setError('Oda kapatıldı.');
+                const sessionRef = getSessionDocRef(window.db, window.appId, currentSessionId);
+
+                // Oturum belgesini dinle
+                const unsubscribe = window.onSnapshot(sessionRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        setSessionData(docSnap.data());
+                    } else {
+                        // Oturum yoksa, varsayılan bir oturum oluştur
+                        console.log("Oturum belgesi bulunamadı, oluşturuluyor...");
+                        const initialGrid = Array(TOTAL_CELLS).fill(null).map((_, index) => ({
+                            index,
+                            ownerId: null,
+                            strength: 0,
+                            isClicked: false,
+                        }));
+
+                        window.setDoc(sessionRef, {
+                            isGameStarted: false,
+                            players: [],
+                            grid: initialGrid,
+                            turn: null, // Sıradaki oyuncu ID'si
+                            shouts: [],
+                            winnerId: null
+                        }, { merge: true }).catch(e => console.error("Oturum oluşturma hatası:", e));
                     }
-                });
+                }, error => console.error("Firestore dinleme hatası:", error));
 
-                const unsubPlayers = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'rooms', roomCode, 'players'), (snap) => {
-                    const p = [];
-                    snap.forEach(d => p.push({id: d.id, ...d.data()}));
-                    setPlayers(p.sort((a,b) => b.score - a.score));
-                });
+                return () => unsubscribe();
+            }, [isAuthReady, currentSessionId]);
 
-                return () => { unsubRoom(); unsubPlayers(); };
-            }, [db, roomCode, view]);
+            // --- Ses Oynatma Mantığı ---
+            useEffect(() => {
+                if (audioQueue.length > 0) {
+                    const { text, speaker, callback } = audioQueue[0];
+                    if (!text) {
+                         // Geçersiz öğeyi kuyruktan çıkar
+                        setAudioQueue(q => q.slice(1));
+                        return;
+                    }
 
-            const enterGame = () => {
-                audioManager.init();
-                audioManager.playClick();
-                audioManager.toggleMusic();
-                setView('menu');
-            };
+                    const audio = document.createElement('audio');
+                    audio.onended = () => {
+                        setAudioQueue(q => q.slice(1)); // Oynatma bitince kuyruktan çıkar
+                        if (callback) callback();
+                    };
+                    audio.onerror = (e) => {
+                        console.error("Ses oynatma hatası:", e);
+                        setAudioQueue(q => q.slice(1)); // Hata durumunda da kuyruktan çıkar
+                        if (callback) callback();
+                    };
 
-            // Oyun İşlemleri
-            const createRoom = async (name) => {
-                if (!db || !user) return;
-                audioManager.playClick();
-                const code = Math.random().toString(36).substring(2,6).toUpperCase();
-                const { setDoc, doc, serverTimestamp } = window.firebaseModules;
+                    const fetchTTS = async () => {
+                        try {
+                            const selectedVoice = speaker === 'Kore' ? 'Kore' : 'Puck'; // Basit ses seçimi
+                            
+                            const payload = {
+                                contents: [{ parts: [{ text: `Konuşmacı ${speaker}: ${text}` }] }],
+                                generationConfig: {
+                                    responseModalities: ["AUDIO"],
+                                    speechConfig: {
+                                        multiSpeakerVoiceConfig: {
+                                            speakerVoiceConfigs: [
+                                                { speaker: "Joe", voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } } },
+                                                { speaker: "Jane", voiceConfig: { prebuiltVoiceConfig: { voiceName: "Puck" } } }
+                                            ]
+                                        }
+                                    }
+                                },
+                                model: "gemini-2.5-flash-preview-tts"
+                            };
+
+                            const response = await fetch(`${GEMINI_API_URL}?key=${API_KEY}`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(payload)
+                            });
+
+                            if (!response.ok) throw new Error(`API Hatası: ${response.statusText}`);
+
+                            const result = await response.json();
+                            const part = result?.candidates?.[0]?.content?.parts?.[0];
+                            const audioData = part?.inlineData?.data;
+                            const mimeType = part?.inlineData?.mimeData;
+                            
+                            if (audioData) {
+                                // PCM'i WAV'a dönüştürme mantığı (basit bir yaklaşım kullanıldı)
+                                const audioUrl = `data:audio/wav;base64,${audioData}`; // Bu genellikle işe yarar
+                                audio.src = audioUrl;
+                                audio.play().catch(e => console.error("Oynatma reddedildi:", e));
+                            } else {
+                                throw new Error("Ses verisi alınamadı.");
+                            }
+                        } catch (e) {
+                            console.error("TTS üretme/oynatma hatası:", e);
+                            setAudioQueue(q => q.slice(1));
+                        }
+                    };
+
+                    fetchTTS();
+                }
+            }, [audioQueue]); 
+
+            // --- İşleyiciler (Handlers) ---
+
+            // Oyuncunun ismini lobiye ekler/günceller
+            const joinGame = useCallback(async (name) => {
+                if (!window.db || !userId) return;
+                const sessionRef = getSessionDocRef(window.db, window.appId, currentSessionId);
+                const newPlayer = { id: userId, name: name, score: 0 };
                 
-                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'rooms', code), {
-                    hostId: user.uid, status: 'waiting', round: 0, commentary: ''
-                });
-                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'rooms', code, 'players', user.uid), {
-                    name, score: 0, isHost: true, lastWin: 0
-                });
-                setRoomCode(code);
-                setView('lobby');
-            };
+                try {
+                    // Oyuncunun zaten listede olup olmadığını kontrol et ve güncelle
+                    const updatedPlayers = sessionData.players.filter(p => p.id !== userId);
+                    await window.setDoc(sessionRef, {
+                        players: [...updatedPlayers, newPlayer],
+                    }, { merge: true });
+                } catch (e) {
+                    console.error("Oyuna katılma hatası:", e);
+                }
+            }, [userId, currentSessionId, sessionData]);
 
-            const joinRoom = async (code, name) => {
-                if (!db || !user) return;
-                audioManager.playJoin();
-                const { getDoc, doc, setDoc } = window.firebaseModules;
-                const rRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', code);
-                const snap = await getDoc(rRef);
+            // Oyuncuyu lobiden çıkarır
+            const leaveGame = useCallback(async () => {
+                if (!window.db || !userId) return;
+                const sessionRef = getSessionDocRef(window.db, window.appId, currentSessionId);
                 
-                if (!snap.exists()) { setError('Oda bulunamadı!'); return; }
-                // 15 kişi kontrolü
-                // (Basitlik için burada Firestore count yapmıyoruz, ama lobi dolduğunda uyarı verebiliriz)
+                try {
+                    const updatedPlayers = sessionData.players.filter(p => p.id !== userId);
+                    await window.updateDoc(sessionRef, {
+                        players: updatedPlayers,
+                    });
+                } catch (e) {
+                    console.error("Oyundan ayrılma hatası:", e);
+                }
+            }, [userId, currentSessionId, sessionData]);
+
+            // Oyunu başlatır
+            const startGame = useCallback(async () => {
+                if (!window.db || !sessionData || sessionData.players.length < 2) return;
+                const sessionRef = getSessionDocRef(window.db, window.appId, currentSessionId);
                 
-                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'rooms', code, 'players', user.uid), {
-                    name, score: 0, isHost: false, lastWin: 0
-                });
-                setRoomCode(code);
-                setView('lobby');
-            };
+                const shuffledPlayers = [...sessionData.players].sort(() => Math.random() - 0.5);
+                const firstPlayerId = shuffledPlayers[0].id;
+                
+                const initialGrid = Array(TOTAL_CELLS).fill(null).map((_, index) => ({
+                    index,
+                    ownerId: null,
+                    strength: 0,
+                    isClicked: false,
+                }));
 
-            if (view === 'splash') return <SplashScreen onEnter={enterGame} />;
-            if (error && view === 'splash') return <div className="h-screen flex items-center justify-center text-red-500 p-10 bg-black">{error}</div>;
+                try {
+                    await window.setDoc(sessionRef, {
+                        isGameStarted: true,
+                        turn: firstPlayerId,
+                        grid: initialGrid,
+                        winnerId: null,
+                        shouts: []
+                    }, { merge: true });
+                    setAudioQueue(q => [...q, { text: `Oyun başladı! Sıra ${shuffledPlayers[0].name} oyuncusunda.`, speaker: 'Joe' }]);
+                } catch (e) {
+                    console.error("Oyunu başlatma hatası:", e);
+                }
+            }, [currentSessionId, sessionData]);
 
-            return (
-                <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-900 via-[#050b14] to-slate-900 text-white">
-                    {/* Arka Plan Efekti */}
-                    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-900/20 blur-[100px] rounded-full animate-float"></div>
-                        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-cyan-900/20 blur-[100px] rounded-full animate-float" style={{animationDelay: '2s'}}></div>
-                    </div>
+            // Oyunu sıfırlar (lobiye döner)
+            const resetGame = useCallback(async () => {
+                if (!window.db || !sessionData) return;
+                const sessionRef = getSessionDocRef(window.db, window.appId, currentSessionId);
+                
+                try {
+                    await window.updateDoc(sessionRef, {
+                        isGameStarted: false,
+                        turn: null,
+                        winnerId: null,
+                        grid: Array(TOTAL_CELLS).fill(null).map((_, index) => ({
+                            index,
+                            ownerId: null,
+                            strength: 0,
+                            isClicked: false,
+                        })),
+                        players: sessionData.players.map(p => ({ ...p, score: 0 }))
+                    });
+                    setAudioQueue(q => [...q, { text: `Oyun sona erdi ve lobiye dönüldü.`, speaker: 'Joe' }]);
+                } catch (e) {
+                    console.error("Oyunu sıfırlama hatası:", e);
+                }
+            }, [currentSessionId, sessionData]);
 
-                    <div className="relative z-10 container mx-auto px-4 h-full flex flex-col min-h-screen">
-                         {/* Üst Bar */}
-                         <div className="flex justify-between items-center py-4 border-b border-white/10">
-                            <h1 className="text-2xl font-display tracking-widest bg-gradient-to-r from-cyan-400 to-purple-500 text-transparent bg-clip-text">TUMBLE ARENA</h1>
-                            <button onClick={() => audioManager.toggleMusic()} className="p-2 bg-white/5 rounded-full hover:bg-white/10 transition">
-                                {audioManager.isMusicPlaying ? '🔊' : '🔇'}
-                            </button>
-                        </div>
+            // Oyunda hücre tıklaması
+            const handleCellClick = useCallback(async (cellIndex) => {
+                if (!window.db || !sessionData || sessionData.turn !== userId || sessionData.winnerId) return;
+                
+                const sessionRef = getSessionDocRef(window.db, window.appId, currentSessionId);
+                const grid = [...sessionData.grid];
+                const cell = grid[cellIndex];
 
-                        <div className="flex-1 flex flex-col justify-center">
-                            {view === 'menu' && <Menu user={user} onCreate={createRoom} onJoin={joinRoom} error={error} />}
-                            {view === 'lobby' && <Lobby roomCode={roomCode} players={players} user={user} db={db} />}
-                            {view === 'game' && <Game roomCode={roomCode} players={players} user={user} roomData={roomData} db={db} />}
-                        </div>
-                    </div>
-                </div>
-            );
-        }
+                // Sadece boş hücreye tıklanabilir
+                if (cell.ownerId === null) {
+                    grid[cellIndex] = {
+                        index: cellIndex,
+                        ownerId: userId,
+                        strength: 1,
+                        isClicked: true
+                    };
 
-        // --- ALT BİLEŞENLER ---
+                    // Skor güncelleme
+                    const newScore = sessionData.players.find(p => p.id === userId).score + 1;
+                    const newPlayers = sessionData.players.map(p => p.id === userId ? { ...p, score: newScore } : p);
 
-        function SplashScreen({ onEnter }) {
-            return (
-                <div className="h-screen w-full bg-black flex flex-col items-center justify-center relative overflow-hidden cursor-pointer" onClick={onEnter}>
-                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20"></div>
-                    <h1 className="text-6xl md:text-8xl font-display text-transparent bg-clip-text bg-gradient-to-br from-purple-500 via-cyan-400 to-blue-600 animate-glow mb-8 text-center px-4">
-                        TUMBLE<br/>ARENA
-                    </h1>
-                    <p className="text-cyan-200/70 font-mono text-lg tracking-[0.3em] animate-pulse mb-12">ONLINE PvP SLOT BATTLE</p>
-                    <button className="px-12 py-4 bg-white/5 border border-cyan-500/50 text-cyan-400 rounded-none font-bold tracking-widest hover:bg-cyan-500 hover:text-black transition duration-300 uppercase">
-                        Giriş Yap / Sesi Aç
-                    </button>
-                    <p className="absolute bottom-10 text-xs text-gray-600">Gemini AI Spiker Destekli • Web Audio API Ses Motoru</p>
-                </div>
-            );
-        }
+                    // Sıradaki oyuncuyu bul
+                    const currentPlayerIndex = newPlayers.findIndex(p => p.id === userId);
+                    const nextPlayerIndex = (currentPlayerIndex + 1) % newPlayers.length;
+                    const nextPlayerId = newPlayers[nextPlayerIndex].id;
 
-        function Menu({ user, onCreate, onJoin, error }) {
-            const [name, setName] = useState('');
-            const [code, setCode] = useState('');
-            const [tab, setTab] = useState('create'); // create | join
+                    // Kazanan kontrolü (tüm hücreler doluysa)
+                    const isGameOver = grid.every(c => c.ownerId !== null);
+                    let winnerId = isGameOver ? newPlayers.reduce((max, p) => (p.score > max.score ? p : max)).id : null;
 
-            return (
-                <div className="max-w-md mx-auto w-full glass-panel p-8 rounded-2xl shadow-2xl animate-float">
-                    <div className="flex gap-4 mb-6">
-                        <button onClick={() => { audioManager.playClick(); setTab('create'); }} className={`flex-1 py-3 font-bold tracking-wider transition ${tab==='create' ? 'bg-purple-600 text-white shadow-[0_0_20px_rgba(147,51,234,0.5)]' : 'bg-white/5 text-gray-400'}`}>ODA KUR</button>
-                        <button onClick={() => { audioManager.playClick(); setTab('join'); }} className={`flex-1 py-3 font-bold tracking-wider transition ${tab==='join' ? 'bg-cyan-600 text-white shadow-[0_0_20px_rgba(34,211,238,0.5)]' : 'bg-white/5 text-gray-400'}`}>KATIL</button>
-                    </div>
+                    try {
+                        await window.updateDoc(sessionRef, {
+                            grid: grid,
+                            players: newPlayers,
+                            turn: isGameOver ? null : nextPlayerId,
+                            winnerId: winnerId
+                        });
 
-                    <div className="space-y-4">
-                        <div>
-                            <label className="text-xs uppercase text-gray-500 font-bold mb-1 block">Oyuncu Adı</label>
-                            <input type="text" value={name} onChange={e=>setName(e.target.value)} className="w-full bg-black/40 border border-white/10 p-3 text-white focus:border-cyan-500 outline-none transition" placeholder="NICKNAME" maxLength={12} />
-                        </div>
-                        
-                        {tab === 'join' && (
-                             <div>
-                                <label className="text-xs uppercase text-gray-500 font-bold mb-1 block">Oda Kodu</label>
-                                <input type="text" value={code} onChange={e=>setCode(e.target.value)} className="w-full bg-black/40 border border-white/10 p-3 text-white focus:border-cyan-500 outline-none transition font-mono uppercase tracking-widest" placeholder="ABCD" maxLength={4} />
-                            </div>
-                        )}
+                        if (!isGameOver) {
+                            const nextPlayerName = newPlayers[nextPlayerIndex].name;
+                            setAudioQueue(q => [...q, { text: `Oyuncu ${newPlayers[currentPlayerIndex].name} bir alan ele geçirdi. Sıra ${nextPlayerName} oyuncusunda.`, speaker: 'Joe' }]);
+                        } else {
+                            const winnerName = newPlayers.find(p => p.id === winnerId).name;
+                             setAudioQueue(q => [...q, { text: `Oyun Bitti! Kazanan ${winnerName}.`, speaker: 'Joe' }]);
+                        }
 
-                        {error && <p className="text-red-400 text-sm text-center bg-red-900/20 p-2 rounded">{error}</p>}
-
-                        <button 
-                            onClick={() => tab === 'create' ? onCreate(name) : onJoin(code, name)}
-                            className={`w-full py-4 mt-4 font-display text-xl uppercase tracking-widest transition hover:scale-[1.02] active:scale-[0.98] ${tab==='create' ? 'bg-gradient-to-r from-purple-600 to-indigo-600' : 'bg-gradient-to-r from-cyan-600 to-blue-600'}`}
-                        >
-                            {tab === 'create' ? 'ARENAYI OLUŞTUR' : 'SAVAŞA GİR'}
-                        </button>
-                    </div>
-                    <div className="mt-4 text-center text-xs text-gray-600 font-mono">ID: {user?.uid.slice(0,6)}...</div>
-                </div>
-            );
-        }
-
-        function Lobby({ roomCode, players, user, db }) {
-            const isHost = players.find(p => p.id === user.uid)?.isHost;
-            const startGame = async () => {
-                audioManager.playClick();
-                const { updateDoc, doc } = window.firebaseModules;
-                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomCode), { status: 'playing', round: 1 });
-            };
-
-            return (
-                <div className="max-w-4xl mx-auto w-full flex flex-col md:flex-row gap-8">
-                    <div className="flex-1 glass-panel p-6 rounded-2xl">
-                        <h2 className="text-gray-400 uppercase text-xs font-bold tracking-widest mb-4">LOBİ DURUMU</h2>
-                        <div className="text-center py-10">
-                            <div className="text-6xl font-display text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-cyan-400 tracking-widest mb-2">{roomCode}</div>
-                            <p className="text-gray-400 text-sm animate-pulse">DİĞER OYUNCULAR BEKLENİYOR...</p>
-                        </div>
-                        
-                        {isHost ? (
-                            <button onClick={startGame} className="w-full py-4 bg-green-600 hover:bg-green-500 text-white font-bold tracking-widest rounded transition shadow-[0_0_30px_rgba(22,163,74,0.4)] hover:shadow-[0_0_50px_rgba(22,163,74,0.6)]">
-                                OYUNU BAŞLAT
-                            </button>
-                        ) : (
-                            <div className="w-full py-4 bg-white/5 text-center text-gray-500 rounded font-mono text-sm">KURUCU BAŞLATIYOR...</div>
-                        )}
-                    </div>
-
-                    <div className="flex-1 glass-panel p-6 rounded-2xl flex flex-col h-[500px]">
-                        <h2 className="text-gray-400 uppercase text-xs font-bold tracking-widest mb-4 flex justify-between">
-                            <span>OYUNCULAR</span>
-                            <span>{players.length}/15</span>
-                        </h2>
-                        <div className="flex-1 overflow-y-auto space-y-2 pr-2">
-                            {players.map((p, i) => (
-                                <div key={p.id} className="flex items-center justify-between p-3 bg-white/5 border border-white/5 rounded hover:bg-white/10 transition">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center font-bold text-xs border border-white/10">
-                                            {i + 1}
-                                        </div>
-                                        <span className={`font-bold ${p.id === user.uid ? 'text-cyan-400' : 'text-gray-300'}`}>{p.name}</span>
-                                    </div>
-                                    {p.isHost && <span className="text-[10px] bg-yellow-500/20 text-yellow-500 px-2 py-1 rounded">HOST</span>}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            );
-        }
-
-        function Game({ roomCode, players, user, roomData, db }) {
-            const [grid, setGrid] = useState([]);
-            const [status, setStatus] = useState('idle');
-            const [roundScore, setRoundScore] = useState(0);
-            const [multiplier, setMultiplier] = useState(1);
+                    } catch (e) {
+                        console.error("Hücre tıklama hatası:", e);
+                    }
+                }
+            }, [userId, currentSessionId, sessionData]);
             
-            // AI Spiker State
-            const [aiCommentary, setAiCommentary] = useState('');
-            const [audioSrc, setAudioSrc] = useState(null);
-            const audioRef = useRef(null);
+            // Oyuncunun durumu hakkında Gemini'dan yorum ister (hype)
+            const generateShout = useCallback(async () => {
+                if (!window.db || !sessionData || generatingShout || sessionData.winnerId) return;
+                setGeneratingShout(true);
 
-            const isHost = players.find(p => p.id === user.uid)?.isHost;
-
-            // Spiker Sesi Çal
-            useEffect(() => {
-                if (audioSrc && audioRef.current) {
-                    audioRef.current.src = audioSrc;
-                    audioRef.current.play().catch(e => console.log("Ses çalma hatası:", e));
-                }
-            }, [audioSrc]);
-
-            // AI Spiker Tetikleyici (Sadece Host)
-            useEffect(() => {
-                if (isHost && roomData.status === 'playing' && roomData.commentary) {
-                   // Host global commentary'yi değiştirdiğinde diğerleri sadece text görür, seslendirme client-side tetiklenmeli
-                }
-                // Text değiştiğinde herkes için ekranda göster
-                if (roomData.commentary) setAiCommentary(roomData.commentary);
-            }, [roomData.commentary]);
-
-            const runGameRound = async () => {
-                setStatus('spinning');
-                setRoundScore(0);
-                setMultiplier(1);
-                audioManager.playSpin();
-
-                // 1. Rastgele Grid
-                const newGrid = Array(25).fill(null).map(() => SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]);
-                setGrid(newGrid);
+                const myPlayer = sessionData.players.find(p => p.id === userId);
+                const opponentScores = sessionData.players.filter(p => p.id !== userId).map(p => `${p.name}: ${p.score}`).join(', ');
+                const myScore = myPlayer ? myPlayer.score : 0;
+                const turnName = sessionData.players.find(p => p.id === sessionData.turn)?.name || 'Bilinmiyor';
                 
-                await new Promise(r => setTimeout(r, 800)); // Dönme efekti bekleme
+                const prompt = `You are a hype announcer for a simple tile-capturing game. The current player, ${myPlayer.name}, has a score of ${myScore}. Opponent scores are: ${opponentScores}. It is currently ${turnName}'s turn. Write a single, short, exciting Turkish sentence (max 15 words) encouraging the player or commenting on the state of the game. Focus on action and excitement.`;
 
-                // 2. Basit Puanlama Simülasyonu (Karmaşık fizik yerine hızlı oyun için)
-                // Gerçek tumble mantığı burada basitleştirildi
-                let totalScore = 0;
-                let combos = 0;
-                
-                // Rastgele 3-4 iterasyon tumble efekti
-                for(let i=0; i<3; i++) {
-                    setStatus('tumbling');
-                    // Rastgele hücreleri "patlat"
-                    const popCount = Math.floor(Math.random() * 5) + 1;
-                    if (popCount > 0) {
-                        combos++;
-                        audioManager.playClick(); // Pop sesi
-                        totalScore += popCount * 20;
-                        await new Promise(r => setTimeout(r, 400));
-                        // Yeni semboller (sadece görsel yenileme)
-                        setGrid(prev => prev.map(item => Math.random() > 0.7 ? SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)] : item));
-                    }
-                }
+                try {
+                    const payload = {
+                        contents: [{ parts: [{ text: prompt }] }],
+                        systemInstruction: { parts: [{ text: "Act as a highly energetic sports announcer. Respond only with a single, short, exciting Turkish sentence." }] },
+                        tools: [{ "google_search": {} }],
+                    };
 
-                // 3. Final Çarpan
-                const finalMult = Math.random() > 0.9 ? 5 : (Math.random() > 0.7 ? 2 : 1);
-                setMultiplier(finalMult);
-                const finalScore = totalScore * finalMult;
-                setRoundScore(finalScore);
-                
-                if (finalScore > 100) audioManager.playWin();
+                    const response = await fetch(`${GEMINI_API_URL}?key=${API_KEY}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
 
-                setStatus('finished');
-
-                // Skoru Kaydet
-                const { updateDoc, doc } = window.firebaseModules;
-                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomCode, 'players', user.uid), {
-                    score: finalScore, 
-                    lastWin: finalScore
-                });
-            };
-
-            // Round Kontrolcüsü
-            useEffect(() => {
-                if (roomData.round > 0 && status === 'idle') {
-                    runGameRound();
-                }
-            }, [roomData.round]);
-
-            // Host: Round Bittiğinde Yorum Yap ve Sıfırla
-            const handleNextRound = async () => {
-                if(!isHost) return;
-                
-                // En yüksek skoru bulan
-                const winner = players[0]; // Zaten sıralı
-                
-                // AI Yorumu Üret
-                const prompt = `Tumble Arena oyununda ${winner.name} isimli oyuncu ${winner.score} puanla lider! Çok kısa, tek cümlelik, gaza getirici bir spiker yorumu yap. Türkçe olsun.`;
-                const text = await generateCommentaryText(prompt);
-                
-                // Text'i DB'ye yaz (Herkes görsün)
-                const { updateDoc, doc } = window.firebaseModules;
-                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomCode), {
-                    commentary: text,
-                    // round statüsünü değiştirmek yerine client tarafında reset bekliyoruz
-                });
-
-                // Sesi sadece host veya herkes üretebilir. 
-                // Trafik tasarrufu için sesi sadece kendi client'ında üretip dinletelim, diğerleri metni okur.
-                // Veya herkes üretsin:
-                generateSpeech(text, setAudioSrc);
-            };
-
-            const triggerReset = async () => {
-                 if(!isHost) return;
-                 const { updateDoc, doc } = window.firebaseModules;
-                 setStatus('idle');
-                 setAiCommentary('');
-                 // Yeni round için sayıyı artır
-                 await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomCode), { 
-                     round: roomData.round + 1,
-                     commentary: ''
-                 });
-            };
-
-            return (
-                <div className="flex flex-col md:flex-row gap-6 max-w-6xl mx-auto w-full h-[85vh]">
-                    <audio ref={audioRef} className="hidden" />
+                    if (!response.ok) throw new Error(`API Hatası: ${response.statusText}`);
+                    const result = await response.json();
+                    const shoutText = result?.candidates?.[0]?.content?.parts?.[0]?.text || "Vay canına, heyecan dorukta!";
                     
-                    {/* SOL PANEL: OYUN ALANI */}
-                    <div className="flex-[2] flex flex-col relative">
-                        {/* Spiker Kutusu */}
-                        {aiCommentary && (
-                            <div className="absolute top-4 left-0 right-0 z-20 mx-auto w-max max-w-[90%] bg-purple-900/90 border border-purple-500 p-4 rounded-xl backdrop-blur animate-in slide-in-from-top fade-in duration-500 shadow-[0_0_30px_rgba(168,85,247,0.5)]">
-                                <div className="flex items-center gap-3">
-                                    <span className="text-2xl">🎙️</span>
-                                    <p className="text-white font-bold italic">"{aiCommentary}"</p>
-                                </div>
-                            </div>
-                        )}
+                    setCurrentShout(shoutText);
+                    setAudioQueue(q => [...q, { text: shoutText, speaker: 'Jane' }]);
 
-                        <div className="flex-1 bg-slate-900/50 border border-white/10 rounded-3xl relative flex items-center justify-center p-4 overflow-hidden shadow-2xl">
-                             <div className="grid grid-cols-5 gap-2 w-full max-w-[500px] aspect-square">
-                                {grid.map((item, i) => (
-                                    <div key={i} className={`bg-slate-800 rounded-lg flex items-center justify-center text-4xl shadow-inner border border-white/5 transition-all duration-300 ${status === 'tumbling' ? 'scale-90' : 'scale-100'}`}>
-                                        <span className={item?.color || 'text-white'}>{item?.icon}</span>
-                                    </div>
-                                ))}
-                             </div>
+                    // Yorumu Firestore'a kaydet (isteğe bağlı: sadece son yorumu tutmak için)
+                    const sessionRef = getSessionDocRef(window.db, window.appId, currentSessionId);
+                    await window.updateDoc(sessionRef, {
+                        shouts: window.arrayUnion({ text: shoutText, by: myPlayer.name, timestamp: Date.now() })
+                    });
 
-                             {/* Sonuç Overlay */}
-                             {status === 'finished' && (
-                                 <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-10 flex flex-col items-center justify-center">
-                                     <h3 className="text-purple-400 font-bold tracking-widest text-xl mb-2">TUR KAZANCI</h3>
-                                     <div className="text-7xl font-display text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.5)] mb-4">{roundScore}</div>
-                                     {multiplier > 1 && <div className="text-yellow-400 font-bold text-2xl animate-bounce">x{multiplier} ÇARPAN!</div>}
-                                     
-                                     {isHost && (
-                                         <div className="mt-8 flex gap-4">
-                                            {!aiCommentary ? (
-                                                <button onClick={handleNextRound} className="px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white rounded font-bold transition">
-                                                    🎙️ YORUM YAP
-                                                </button>
-                                            ) : (
-                                                <button onClick={triggerReset} className="px-6 py-3 bg-green-600 hover:bg-green-500 text-white rounded font-bold transition animate-pulse">
-                                                    SONRAKİ ROUND ➡️
-                                                </button>
-                                            )}
-                                         </div>
-                                     )}
-                                     {!isHost && <p className="mt-8 text-gray-400 animate-pulse">HOST BEKLENİYOR...</p>}
-                                 </div>
-                             )}
-                        </div>
+                } catch (e) {
+                    console.error("Yorum üretme hatası:", e);
+                    setCurrentShout("Bir spiker yorumu üretilemedi.");
+                } finally {
+                    setGeneratingShout(false);
+                }
+            }, [userId, currentSessionId, sessionData, generatingShout]);
+
+
+            // Yükleniyor veya oturum yoksa bekle
+            if (!isAuthReady || !sessionData) {
+                return (
+                    <div className="text-white text-lg flex items-center gap-2">
+                        <ICONS.RefreshCw size={24} className="animate-spin text-cyan-400" />
+                        <p>Oyun verileri yükleniyor...</p>
                     </div>
+                );
+            }
+            
+            // Mevcut kazananı belirle
+            const winner = sessionData.winnerId ? 
+                           sessionData.players.reduce((max, p) => (p.score > max.score ? p : max)) : 
+                           null;
 
-                    {/* SAĞ PANEL: LİDERLİK TABLOSU (15 Kişilik Scrollable) */}
-                    <div className="flex-1 glass-panel border-l border-white/10 flex flex-col overflow-hidden rounded-2xl md:rounded-none md:rounded-r-2xl h-full">
-                        <div className="p-4 border-b border-white/10 bg-black/20">
-                            <h3 className="font-display tracking-widest text-cyan-400 text-lg">CANLI SKOR</h3>
+            // Ana uygulama görünümü
+            return (
+                <div className="min-h-screen flex items-center justify-center p-4 w-full">
+                    {/* Spiker Yorumu Kutusu */}
+                    {currentShout && (
+                        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-yellow-600 text-white font-bold px-4 py-2 rounded-full shadow-xl animate-bounce-y z-10 text-sm">
+                            {currentShout}
                         </div>
-                        <div className="flex-1 overflow-y-auto p-2 space-y-2 custom-scrollbar">
-                            {players.map((p, i) => (
-                                <div key={p.id} className={`flex items-center justify-between p-3 rounded-xl border transition-all duration-500 ${p.id === user.uid ? 'bg-cyan-900/30 border-cyan-500/50' : 'bg-white/5 border-transparent'} ${i===0 ? 'scale-105 my-2 shadow-[0_0_15px_rgba(234,179,8,0.2)] bg-yellow-900/10 border-yellow-500/30' : ''}`}>
-                                    <div className="flex items-center gap-3">
-                                        <div className={`w-8 h-8 flex items-center justify-center rounded font-bold text-sm ${i===0 ? 'text-yellow-400' : 'text-gray-400'}`}>
-                                            {i===0 ? '👑' : `#${i+1}`}
-                                        </div>
-                                        <div>
-                                            <div className="font-bold text-sm">{p.name}</div>
-                                            <div className="text-[10px] text-gray-500">Son: {p.lastWin || 0}</div>
-                                        </div>
-                                    </div>
-                                    <div className="font-mono font-bold text-lg">{p.score}</div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+                    )}
+                    
+                    {/* Lobi veya Oyun Görünümü */}
+                    {sessionData.isGameStarted ? (
+                        <Game 
+                            players={sessionData.players} 
+                            grid={sessionData.grid} 
+                            onReset={resetGame} 
+                            onCellClick={handleCellClick} 
+                            onGenerateShout={generateShout}
+                            generatingShout={generatingShout}
+                            userId={userId}
+                            winner={winner}
+                        />
+                    ) : (
+                        <Lobby 
+                            players={sessionData.players} 
+                            onStart={startGame} 
+                            onJoin={joinGame} 
+                            onLeave={leaveGame} 
+                            userId={userId}
+                            currentSessionId={currentSessionId}
+                        />
+                    )}
                 </div>
             );
         }
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
+        // ReactDOM.createRoot kullanımı
+        const container = document.getElementById('root');
+        const root = ReactDOM.createRoot(container);
         root.render(<App />);
     </script>
 </body>
