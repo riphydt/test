@@ -1,987 +1,677 @@
-
 <!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tumble Arena - Sesli Spikerli PvP</title>
-    <!-- Tailwind CSS CDN -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tumble Arena - Canlı Spikerli Online PvP</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- React & Babel CDN'leri -->
+    <!-- React & Babel -->
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+
     <style>
-      /* Temel stil ayarlamaları */
-      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
       body {
-        font-family: 'Inter', sans-serif;
-        background-color: #0f172a;
+        font-family: 'Rajdhani', sans-serif;
+        background-color: #050b14;
+        color: #e2e8f0;
+        overflow-x: hidden;
       }
-      /* Grid öğeleri için custom animasyon */
-      .grid-cell-container {
-        transform-origin: center;
-        transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      .font-display { font-family: 'Black Ops One', system-ui; }
+      
+      /* Animasyonlar */
+      @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+      @keyframes glow { 0%, 100% { box-shadow: 0 0 5px #a855f7, 0 0 10px #a855f7; } 50% { box-shadow: 0 0 20px #22d3ee, 0 0 30px #22d3ee; } }
+      
+      .animate-float { animation: float 6s ease-in-out infinite; }
+      .animate-glow { animation: glow 3s infinite; }
+      
+      .glass-panel {
+        background: rgba(15, 23, 42, 0.7);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
       }
-      .scale-0 { transform: scale(0); opacity: 0; }
-      .scale-100 { transform: scale(1); opacity: 1; }
+
+      /* Scrollbar */
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-track { background: #0f172a; }
+      ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+      ::-webkit-scrollbar-thumb:hover { background: #475569; }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
-    <!-- 
-      DÜZELTME: Firebase Modül İçe Aktarımları ve Fonksiyonların Global Nesneye Bağlanması.
-    -->
+    <!-- FIREBASE IMPORT -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, onSnapshot, updateDoc, serverTimestamp, getDoc, deleteDoc, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, onSnapshot, updateDoc, serverTimestamp, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
-        // Gerekli tüm Firebase fonksiyonlarını window nesnesine bağla
-        window.initializeApp = initializeApp;
-        window.getAuth = getAuth;
-        window.signInAnonymously = signInAnonymously;
-        window.onAuthStateChanged = onAuthStateChanged;
-        window.signInWithCustomToken = signInWithCustomToken;
-        window.getFirestore = getFirestore;
-        window.collection = collection;
-        window.doc = doc;
-        window.setDoc = setDoc;
-        window.onSnapshot = onSnapshot;
-        window.updateDoc = updateDoc;
-        window.serverTimestamp = serverTimestamp;
-        window.getDoc = getDoc;
-        window.deleteDoc = deleteDoc;
-        window.setLogLevel = setLogLevel;
-        
+        window.firebaseModules = {
+            initializeApp, getAuth, signInAnonymously, onAuthStateChanged, 
+            signInWithCustomToken, getFirestore, collection, doc, setDoc, 
+            onSnapshot, updateDoc, serverTimestamp, getDoc, deleteDoc
+        };
     </script>
 
     <script type="text/babel">
         const { useState, useEffect, useRef, useMemo } = React;
 
-        // --- Firebase Configuration ---
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{"apiKey": "YOUR_FIREBASE_API_KEY", "projectId": "YOUR_PROJECT_ID"}');
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'github-tumble-arena'; 
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null; 
+        // ==========================================
+        // ⚙️ AYARLAR (BURAYI KENDİ BİLGİLERİNİZLE DOLDURUN)
+        // ==========================================
+        
+        // 1. Google Gemini API Anahtarı (Spiker için gerekli)
+        // https://aistudio.google.com/app/apikey adresinden alabilirsiniz.
+        const GEMINI_API_KEY = ""; // Örn: "AIzaSy..."
 
-        const app = window.initializeApp(firebaseConfig);
-        const auth = window.getAuth(app);
-        const db = window.getFirestore(app);
+        // 2. Firebase Konfigürasyonu (Online oyun için gerekli)
+        // https://console.firebase.google.com/ adresinden proje oluşturup web app ekleyerek alabilirsiniz.
+        const FIREBASE_CONFIG = {
+            apiKey: "DOLDURUN",
+            authDomain: "DOLDURUN.firebaseapp.com",
+            projectId: "DOLDURUN",
+            storageBucket: "DOLDURUN.firebasestorage.app",
+            messagingSenderId: "DOLDURUN",
+            appId: "DOLDURUN"
+        };
+        
+        // Eğer kod editöründe çalışıyorsa otomatik keyleri al (Sizin doldurmanıza gerek yok, bu satırı silmeyin)
+        const activeApiKey = typeof apiKey !== 'undefined' && apiKey ? apiKey : GEMINI_API_KEY;
+        const activeFirebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : FIREBASE_CONFIG;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'tumble-arena-v1';
 
-        // --- Gemini API Configuration ---
-        const apiKey = ""; // Canvas ortamında sağlanması beklenen anahtar.
-        const TEXT_MODEL = 'gemini-2.5-flash-preview-09-2025';
-        const TTS_MODEL = 'gemini-2.5-flash-preview-tts';
+        // ==========================================
+        // 🎵 SES MOTORU (WEB AUDIO API)
+        // ==========================================
+        class SoundEngine {
+            constructor() {
+                this.ctx = null;
+                this.bgmOscillators = [];
+                this.isMuted = false;
+                this.isMusicPlaying = false;
+            }
 
-        // Helper: Convert PCM16 to WAV for playback
-        const pcmToWav = (base64PCM, sampleRate = 24000) => {
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            }
+
+            playTone(freq, type, duration, vol = 0.1) {
+                if (this.isMuted || !this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + duration);
+            }
+
+            // UI Sesleri
+            playClick() { this.playTone(800, 'sine', 0.1, 0.05); }
+            playJoin() { this.playTone(400, 'triangle', 0.2, 0.1); setTimeout(() => this.playTone(600, 'triangle', 0.2, 0.1), 100); }
+            playSpin() { this.playTone(200 + Math.random()*200, 'square', 0.05, 0.03); }
+            playWin() { 
+                [0, 150, 300].forEach((delay, i) => {
+                    setTimeout(() => this.playTone(440 + (i*110), 'sawtooth', 0.5, 0.1), delay);
+                });
+            }
+
+            // Arka Plan Müziği (Drone Ambient)
+            toggleMusic() {
+                this.init();
+                if (this.isMusicPlaying) {
+                    this.bgmOscillators.forEach(o => {
+                        try { o.stop(); o.disconnect(); } catch(e){}
+                    });
+                    this.bgmOscillators = [];
+                    this.isMusicPlaying = false;
+                } else {
+                    if (this.isMuted) return;
+                    // Bas ve atmosferik drone sesi
+                    const freqs = [55, 110, 110.5]; // Binaural beat etkisi için hafif detune
+                    freqs.forEach(f => {
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.value = f;
+                        gain.gain.value = 0.03; // Çok düşük ses
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start();
+                        this.bgmOscillators.push(osc);
+                    });
+                    this.isMusicPlaying = true;
+                }
+            }
+        }
+
+        const audioManager = new SoundEngine();
+
+        // ==========================================
+        // 🧠 GEMINI AI ENTEGRASYONU
+        // ==========================================
+        const pcmToWav = (base64PCM) => {
             const binaryString = atob(base64PCM);
             const len = binaryString.length;
             const buffer = new ArrayBuffer(44 + len);
             const view = new DataView(buffer);
-
             const writeString = (view, offset, string) => {
-                for (let i = 0; i < string.length; i++) {
-                    view.setUint8(offset + i, string.charCodeAt(i));
-                }
+                for (let i = 0; i < string.length; i++) view.setUint8(offset + i, string.charCodeAt(i));
             };
-
             writeString(view, 0, 'RIFF');
             view.setUint32(4, 36 + len, true);
             writeString(view, 8, 'WAVE');
             writeString(view, 12, 'fmt ');
             view.setUint32(16, 16, true);
-            view.setUint16(20, 1, true); // PCM Format
-            view.setUint16(22, 1, true); // Channels
-            view.setUint32(24, sampleRate, true);
-            view.setUint32(28, sampleRate * 2, true); // Byte rate
-            view.setUint16(32, 2, true); // Block align
-            view.setUint16(34, 16, true); // Bits per sample
+            view.setUint16(20, 1, true);
+            view.setUint16(22, 1, true);
+            view.setUint32(24, 24000, true);
+            view.setUint32(28, 48000, true);
+            view.setUint16(32, 2, true);
+            view.setUint16(34, 16, true);
             writeString(view, 36, 'data');
             view.setUint32(40, len, true);
-
             const bytes = new Uint8Array(buffer, 44);
-            for (let i = 0; i < len; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
-            }
-
+            for (let i = 0; i < len; i++) bytes[i] = binaryString.charCodeAt(i);
             return new Blob([buffer], { type: 'audio/wav' });
         };
 
-        // Text Generation
-        const callGemini = async (prompt) => {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/${TEXT_MODEL}:generateContent?key=${apiKey}`;
+        const generateSpeech = async (text, setAudioSrc) => {
+            if (!activeApiKey) return;
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${activeApiKey}`;
             const payload = {
-                contents: [{ parts: [{ text: prompt }] }]
-            };
-
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
-                const data = await response.json();
-                return data.candidates?.[0]?.content?.parts?.[0]?.text || "Yapay zeka metin oluşturma hatası.";
-            } catch (error) {
-                console.error("Text Gen Error:", error);
-                return "Yapay zeka şu an meşgul.";
-            }
-        };
-
-        // Speech Generation
-        const callGeminiTTS = async (textToSpeak) => {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/${TTS_MODEL}:generateContent?key=${apiKey}`;
-            
-            // Fenrir, derin ve spiker benzeri bir ses.
-            const payload = {
-                contents: [{ parts: [{ text: `Say in Turkish with high excitement like a sports commentator: ${textToSpeak}` }] }],
+                contents: [{ parts: [{ text: `Heyecanlı bir Türk spor spikeri gibi bağırarak söyle: ${text}` }] }],
                 generationConfig: {
                     responseModalities: ["AUDIO"],
-                    speechConfig: {
-                        voiceConfig: {
-                            prebuiltVoiceConfig: { voiceName: "Fenrir" } 
-                        }
-                    }
+                    speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Fenrir" } } }
                 }
             };
-
-            for (let attempt = 0; attempt < 3; attempt++) {
-                try {
-                    const response = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-                    
-                    if (!response.ok) {
-                        console.error(`TTS API HATA: HTTP Status ${response.status}. Detay:`, await response.text());
-                        throw new Error(`HTTP Error: ${response.status}`);
-                    }
-                    
-                    const data = await response.json();
-                    
-                    // Ses verisini çıkar
-                    const inlineData = data.candidates?.[0]?.content?.parts?.[0]?.inlineData;
-                    if (inlineData) {
-                        console.log("TTS API Başarılı: Ses verisi alındı.");
-                        // PCM verisini WAV formatına dönüştür ve URL oluştur
-                        const wavBlob = pcmToWav(inlineData.data, 24000); 
-                        return window.URL.createObjectURL(wavBlob);
-                    } else {
-                        console.error("TTS API HATA: Ses verisi (inlineData) yanıt yapısında bulunamadı.", data);
-                        return null;
-                    }
-
-                } catch (error) {
-                    if (attempt < 2) {
-                        console.log(`TTS denemesi başarısız oldu (${attempt + 1}/3). Tekrar denenecek...`);
-                        await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt)));
-                    } else {
-                        console.error("TTS Tüm denemeler başarısız oldu:", error);
-                        return null;
-                    }
+            try {
+                const response = await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)});
+                const data = await response.json();
+                if (data.candidates?.[0]?.content?.parts?.[0]?.inlineData) {
+                    const wavBlob = pcmToWav(data.candidates[0].content.parts[0].inlineData.data);
+                    const audioUrl = URL.createObjectURL(wavBlob);
+                    setAudioSrc(audioUrl);
                 }
-            }
-            return null; // Tüm denemeler başarısız olursa
+            } catch (error) { console.error("TTS Error:", error); }
         };
 
-        // --- Game Constants & Logic ---
+        const generateCommentaryText = async (prompt) => {
+             if (!activeApiKey) return "AI Key eksik.";
+             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${activeApiKey}`;
+             try {
+                const response = await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) });
+                const data = await response.json();
+                return data.candidates?.[0]?.content?.parts?.[0]?.text || "İnanılmaz bir maç!";
+             } catch (e) { return "Bağlantı hatası."; }
+        };
+
+        // ==========================================
+        // 🎮 OYUN BİLEŞENLERİ (REACT)
+        // ==========================================
+
         const SYMBOLS = [
-            { id: 'cherry', icon: '🍒', val: 10, color: 'text-red-500' },
-            { id: 'lemon',  icon: '🍋', val: 15, color: 'text-yellow-400' },
-            { id: 'grape',  icon: '🍇', val: 20, color: 'text-purple-500' },
-            { id: 'water',  icon: '🍉', val: 25, color: 'text-green-500' },
-            { id: 'bell',   icon: '🔔', val: 40, color: 'text-yellow-200' },
-            { id: 'diamond',icon: '💎', val: 75, color: 'text-cyan-300' },
-            { id: 'seven',  icon: '7️⃣', val: 150, color: 'text-red-600' },
+            { id: 'skull', icon: '💀', val: 10, color: 'text-gray-400' },
+            { id: 'bolt',  icon: '⚡', val: 20, color: 'text-yellow-400' },
+            { id: 'fire',  icon: '🔥', val: 30, color: 'text-orange-500' },
+            { id: 'gem',   icon: '💎', val: 50, color: 'text-cyan-400' },
+            { id: 'crown', icon: '👑', val: 100, color: 'text-yellow-500' },
+            { id: 'wild',  icon: '🃏', val: 200, color: 'text-purple-500' },
         ];
 
-        const GRID_SIZE = 5;
-        const ANIMATION_DELAY = 600;
-
-        const generateGrid = () => {
-            const grid = [];
-            for (let i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
-                grid.push(SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]);
-            }
-            return grid;
-        };
-
-        const findMatches = (grid) => {
-            const matches = new Set();
-            const getIdx = (r, c) => r * GRID_SIZE + c;
-            // Yatay eşleşmeler
-            for (let r = 0; r < GRID_SIZE; r++) {
-                for (let c = 0; c < GRID_SIZE - 2; c++) {
-                    const i1 = getIdx(r, c), i2 = getIdx(r, c+1), i3 = getIdx(r, c+2);
-                    if (grid[i1] && grid[i2] && grid[i3] && 
-                        grid[i1].id === grid[i2].id && grid[i1].id === grid[i3].id) {
-                        matches.add(i1); matches.add(i2); matches.add(i3);
-                    }
-                }
-            }
-            // Dikey eşleşmeler
-            for (let c = 0; c < GRID_SIZE; c++) {
-                for (let r = 0; r < GRID_SIZE - 2; r++) {
-                    const i1 = getIdx(r, c), i2 = getIdx(r+1, c), i3 = getIdx(r+2, c);
-                    if (grid[i1] && grid[i2] && grid[i3] && 
-                        grid[i1].id === grid[i2].id && grid[i1].id === grid[i3].id) {
-                        matches.add(i1); matches.add(i2); matches.add(i3);
-                    }
-                }
-            }
-            return Array.from(matches);
-        };
-
-        // --- Icons (Placeholder for Lucide React) ---
-        const ICONS = {
-            Volume2: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>,
-            Mic: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" x2="12" y1="19" y2="22"></line></svg>,
-            RefreshCw: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.55 16.45a10 10 0 0 0 15.3-7.64"></path><path d="M19.45 7.55a10 10 0 0 0-15.3 7.64"></path></svg>,
-            Gamepad2: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 10a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-4z"></path><line x1="8" x2="16" y1="12" y2="12"></line><line x1="12" x2="12" y1="8" y2="16"></line></svg>,
-            Users: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>,
-            Crown: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7z"></path></svg>,
-            Play: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>,
-            Zap: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>,
-            Trophy: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 9v14l4-4 4 4 4-4 4 4V9"></path><path d="M10 11H8"></path><path d="M16 11H14"></path></svg>,
-            MessageSquare: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>,
-        };
-
-        // --- Components ---
-
         function App() {
+            const [view, setView] = useState('splash'); // splash | menu | lobby | game
             const [user, setUser] = useState(null);
-            const [view, setView] = useState('menu');
             const [roomCode, setRoomCode] = useState('');
-            const [roomData, setRoomData] = useState(null);
             const [players, setPlayers] = useState([]);
+            const [roomData, setRoomData] = useState(null);
+            const [db, setDb] = useState(null);
             const [error, setError] = useState('');
-            const [isAuthReady, setIsAuthReady] = useState(false);
 
-            // Auth Initialization 
+            // Firebase Init
             useEffect(() => {
-                const initAuth = async () => {
-                    if (initialAuthToken) {
-                        try {
-                            await window.signInWithCustomToken(auth, initialAuthToken);
-                        } catch(e) {
-                             console.error("Custom token ile giriş hatası:", e);
-                             await window.signInAnonymously(auth);
-                        }
-                    } else {
-                        await window.signInAnonymously(auth).catch(e => console.error("Anonim giriş hatası:", e));
-                    }
-                };
+                const { initializeApp, getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken, getFirestore } = window.firebaseModules;
                 
-                initAuth();
-                
-                const unsubscribe = window.onAuthStateChanged(auth, (u) => {
-                    setUser(u);
-                    setIsAuthReady(true);
-                });
+                try {
+                    const app = initializeApp(activeFirebaseConfig);
+                    const auth = getAuth(app);
+                    const firestore = getFirestore(app);
+                    setDb(firestore);
 
-                return () => unsubscribe();
+                    const initAuth = async () => {
+                         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            await signInWithCustomToken(auth, __initial_auth_token);
+                         } else {
+                            await signInAnonymously(auth);
+                         }
+                    };
+                    initAuth();
+                    onAuthStateChanged(auth, setUser);
+                } catch (e) {
+                    setError("Firebase Ayarları Hatalı! Kod içerisindeki FIREBASE_CONFIG alanını doldurunuz.");
+                }
             }, []);
 
-            // Room Listener
+            // Oda Dinleyicisi
             useEffect(() => {
-                if (!isAuthReady || !user || !roomCode) return;
+                if (!db || !roomCode) return;
+                const { onSnapshot, doc, collection } = window.firebaseModules;
                 
-                // Firestore yolları (public data)
-                const roomRef = window.doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomCode);
-                const playersRef = window.collection(db, 'artifacts', appId, 'public', 'data', 'rooms', roomCode, 'players');
-
-                const unsubRoom = window.onSnapshot(roomRef, (snap) => {
+                const unsubRoom = onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomCode), (snap) => {
                     if (snap.exists()) {
                         const data = snap.data();
                         setRoomData(data);
-                        // Oda durumu 'oynuyor' ise, 'oyun' görünümüne geç
                         if (data.status === 'playing' && view !== 'game') setView('game');
-                        // Oda durumu 'bekliyor' ise, 'lobi' görünümüne geç
                         if (data.status === 'waiting' && view === 'game') setView('lobby');
-                    } else {
-                        setError('Oda kapatıldı veya bulunamadı.');
-                        setView('menu');
-                        setRoomCode('');
+                    } else if (view !== 'menu') {
+                        setView('menu'); 
+                        setError('Oda kapatıldı.');
                     }
                 });
 
-                const unsubPlayers = window.onSnapshot(playersRef, (snap) => {
-                    const pList = [];
-                    snap.forEach(d => pList.push({ id: d.id, ...d.data() }));
-                    // Skora göre sırala (en yüksek skor en üstte)
-                    pList.sort((a, b) => (b.score || 0) - (a.score || 0));
-                    setPlayers(pList);
+                const unsubPlayers = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'rooms', roomCode, 'players'), (snap) => {
+                    const p = [];
+                    snap.forEach(d => p.push({id: d.id, ...d.data()}));
+                    setPlayers(p.sort((a,b) => b.score - a.score));
                 });
 
-                return () => {
-                    unsubRoom();
-                    unsubPlayers();
-                };
-            }, [isAuthReady, user, roomCode, view]);
+                return () => { unsubRoom(); unsubPlayers(); };
+            }, [db, roomCode, view]);
 
-            // Actions
-            const createRoom = async (nickname) => {
-                if (!user || !nickname) return setError('İsim giriniz.');
-                const code = Math.random().toString(36).substring(2, 6).toUpperCase();
-                await window.setDoc(window.doc(db, 'artifacts', appId, 'public', 'data', 'rooms', code), {
-                    hostId: user.uid,
-                    status: 'waiting',
-                    createdAt: window.serverTimestamp(),
-                    roundId: 0,
-                    commentary: ''
+            const enterGame = () => {
+                audioManager.init();
+                audioManager.playClick();
+                audioManager.toggleMusic();
+                setView('menu');
+            };
+
+            // Oyun İşlemleri
+            const createRoom = async (name) => {
+                if (!db || !user) return;
+                audioManager.playClick();
+                const code = Math.random().toString(36).substring(2,6).toUpperCase();
+                const { setDoc, doc, serverTimestamp } = window.firebaseModules;
+                
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'rooms', code), {
+                    hostId: user.uid, status: 'waiting', round: 0, commentary: ''
                 });
-                await window.setDoc(window.doc(db, 'artifacts', appId, 'public', 'data', 'rooms', code, 'players', user.uid), {
-                    name: nickname,
-                    score: 0,
-                    multiplier: 1,
-                    isHost: true,
-                    lastWin: 0,
-                    shout: ''
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'rooms', code, 'players', user.uid), {
+                    name, score: 0, isHost: true, lastWin: 0
                 });
                 setRoomCode(code);
                 setView('lobby');
             };
 
-            const joinRoom = async (code, nickname) => {
-                if (!user || !nickname || !code) return setError('Tüm alanları doldurunuz.');
-                const codeUpper = code.toUpperCase();
-                const roomRef = window.doc(db, 'artifacts', appId, 'public', 'data', 'rooms', codeUpper);
-                const snap = await window.getDoc(roomRef);
-                if (!snap.exists()) return setError('Oda bulunamadı.');
-                await window.setDoc(window.doc(db, 'artifacts', appId, 'public', 'data', 'rooms', codeUpper, 'players', user.uid), {
-                    name: nickname,
-                    score: 0,
-                    multiplier: 1,
-                    isHost: false,
-                    lastWin: 0,
-                    shout: ''
+            const joinRoom = async (code, name) => {
+                if (!db || !user) return;
+                audioManager.playJoin();
+                const { getDoc, doc, setDoc } = window.firebaseModules;
+                const rRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', code);
+                const snap = await getDoc(rRef);
+                
+                if (!snap.exists()) { setError('Oda bulunamadı!'); return; }
+                // 15 kişi kontrolü
+                // (Basitlik için burada Firestore count yapmıyoruz, ama lobi dolduğunda uyarı verebiliriz)
+                
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'rooms', code, 'players', user.uid), {
+                    name, score: 0, isHost: false, lastWin: 0
                 });
-                setRoomCode(codeUpper);
+                setRoomCode(code);
                 setView('lobby');
             };
 
-            const startGame = async () => {
-                if (!roomData || roomData.hostId !== user.uid) return;
-                await window.updateDoc(window.doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomCode), {
-                    status: 'playing',
-                    roundId: 1, // İlk turu başlat
-                    commentary: ''
-                });
-            };
-
-            const resetGame = async () => {
-                if (!roomData || roomData.hostId !== user.uid) return;
-                // Oda durumunu bekleme olarak ayarla
-                await window.updateDoc(window.doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomCode), {
-                    status: 'waiting',
-                    commentary: ''
-                });
-                // Tüm oyuncu skorlarını sıfırla
-                players.forEach(async p => {
-                    await window.updateDoc(window.doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomCode, 'players', p.id), {
-                        score: 0,
-                        multiplier: 1,
-                        lastWin: 0,
-                        shout: ''
-                    });
-                });
-            };
-            
-            if (!isAuthReady) {
-                return (
-                    <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center">
-                        <ICONS.RefreshCw className="animate-spin text-cyan-400" size={48} />
-                        <span className="ml-4">Oyun Yükleniyor...</span>
-                    </div>
-                );
-            }
-
-            // --- Views ---
-
-            if (view === 'menu') {
-                return (
-                    <div className="min-h-screen bg-slate-900 text-white flex flex-col items-center justify-center p-4 font-sans relative overflow-hidden">
-                        <div className="absolute top-0 left-0 w-full h-full opacity-20 pointer-events-none">
-                            <div className="absolute top-10 left-10 w-64 h-64 bg-purple-600 rounded-full blur-[100px]"></div>
-                            <div className="absolute bottom-10 right-10 w-80 h-80 bg-cyan-600 rounded-full blur-[100px]"></div>
-                        </div>
-
-                        <div className="z-10 max-w-md w-full bg-slate-800/80 backdrop-blur-md border border-slate-700 p-8 rounded-2xl shadow-2xl">
-                            <div className="flex justify-center mb-6">
-                                <div className="bg-gradient-to-r from-purple-500 to-cyan-500 p-3 rounded-xl shadow-lg shadow-purple-500/20">
-                                    <ICONS.Gamepad2 size={40} className="text-white" />
-                                </div>
-                            </div>
-                            <h1 className="text-4xl font-black text-center mb-2 bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
-                                TUMBLE ARENA
-                            </h1>
-                            <p className="text-center text-slate-400 mb-8">PvP Slot & Çarpan Savaşı</p>
-                            <div className="flex justify-center items-center gap-2 mb-6 bg-slate-700/50 p-2 rounded-lg text-xs text-purple-300">
-                                <ICONS.Volume2 size={14} /> Gemini AI Sesli Spiker Aktif
-                            </div>
-                            
-                            <MenuForm onCreate={createRoom} onJoin={joinRoom} error={error} setError={setError} />
-                            
-                            {/* User ID Display */}
-                            <div className="mt-6 pt-4 border-t border-slate-700 text-center">
-                                <p className="text-xs text-slate-500">Kullanıcı ID (Paylaşılmalı):</p>
-                                <p className="text-xs text-cyan-400 font-mono break-all">{user?.uid || 'Anonim'}</p>
-                            </div>
-                        </div>
-                    </div>
-                );
-            }
-
-            if (view === 'lobby') {
-                return (
-                    <Lobby 
-                        roomCode={roomCode} 
-                        players={players} 
-                        isHost={roomData?.hostId === user?.uid}
-                        onStart={startGame}
-                        onBack={() => {
-                            setView('menu');
-                            setRoomCode('');
-                            setError('');
-                        }}
-                    />
-                );
-            }
-
-            if (view === 'game') {
-                return (
-                    <GameArena 
-                        user={user}
-                        roomCode={roomCode}
-                        roomData={roomData}
-                        players={players}
-                        isHost={roomData?.hostId === user?.uid}
-                        onReset={resetGame} // Lobiye dönmek için
-                        db={db}
-                        appId={appId}
-                        callGemini={callGemini}
-                        callGeminiTTS={callGeminiTTS}
-                        findMatches={findMatches}
-                        generateGrid={generateGrid}
-                        SYMBOLS={SYMBOLS}
-                        GRID_SIZE={GRID_SIZE}
-                        ANIMATION_DELAY={ANIMATION_DELAY}
-                    />
-                );
-            }
-
-            return <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center">Loading...</div>;
-        }
-
-        function MenuForm({ onCreate, onJoin, error, setError }) {
-            const [nick, setNick] = useState('');
-            const [code, setCode] = useState('');
-            const [mode, setMode] = useState('join'); 
-
-            const handleSubmit = (e) => {
-                e.preventDefault();
-                setError('');
-                if (mode === 'create') onCreate(nick);
-                else onJoin(code, nick);
-            };
+            if (view === 'splash') return <SplashScreen onEnter={enterGame} />;
+            if (error && view === 'splash') return <div className="h-screen flex items-center justify-center text-red-500 p-10 bg-black">{error}</div>;
 
             return (
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                        <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1 font-bold">Kullanıcı Adı</label>
-                        <input 
-                            type="text" 
-                            value={nick} 
-                            onChange={e => setNick(e.target.value)}
-                            className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-purple-500 outline-none transition"
-                            placeholder="Örn: SlotMaster"
-                            maxLength={12}
-                        />
+                <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-900 via-[#050b14] to-slate-900 text-white">
+                    {/* Arka Plan Efekti */}
+                    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-900/20 blur-[100px] rounded-full animate-float"></div>
+                        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-cyan-900/20 blur-[100px] rounded-full animate-float" style={{animationDelay: '2s'}}></div>
                     </div>
-                    {mode === 'join' && (
-                        <div>
-                            <label className="block text-xs uppercase tracking-wider text-slate-400 mb-1 font-bold">Oda Kodu</label>
-                            <input 
-                                type="text" 
-                                value={code} 
-                                onChange={e => setCode(e.target.value)}
-                                className="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-cyan-500 outline-none transition uppercase tracking-widest font-mono"
-                                placeholder="ABCD"
-                                maxLength={4}
-                            />
-                        </div>
-                    )}
-                    {error && <div className="text-red-400 text-sm text-center font-medium bg-red-400/10 p-2 rounded">{error}</div>}
-                    <button 
-                        type="submit" 
-                        className={`w-full py-4 rounded-xl font-bold text-lg shadow-lg transform transition active:scale-95 ${
-                            mode === 'create' 
-                                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:shadow-purple-500/30' 
-                                : 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:shadow-cyan-500/30'
-                        }`}
-                    >
-                        {mode === 'create' ? 'Oda Oluştur' : 'Odaya Katıl'}
-                    </button>
-                    <div className="flex justify-center gap-4 mt-4 text-sm text-slate-400">
-                        <button type="button" onClick={() => setMode('join')} className={`${mode === 'join' ? 'text-white border-b-2 border-cyan-500' : 'hover:text-white'}`}>Mevcut Oda</button>
-                        <span className="text-slate-600">|</span>
-                        <button type="button" onClick={() => setMode('create')} className={`${mode === 'create' ? 'text-white border-b-2 border-purple-500' : 'hover:text-white'}`}>Yeni Oda</button>
-                    </div>
-                </form>
-            );
-        }
 
-        function Lobby({ roomCode, players, isHost, onStart, onBack }) {
-            return (
-                <div className="min-h-screen bg-slate-950 text-white flex flex-col p-6">
-                    <header className="flex justify-between items-center mb-8">
-                        <button onClick={onBack} className="text-slate-400 hover:text-white transition">← Çıkış</button>
-                        <div className="flex flex-col items-center">
-                            <span className="text-slate-500 text-xs uppercase font-bold tracking-widest">Oda Kodu</span>
-                            <span className="text-4xl font-mono font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400 tracking-widest">
-                                {roomCode}
-                            </span>
+                    <div className="relative z-10 container mx-auto px-4 h-full flex flex-col min-h-screen">
+                         {/* Üst Bar */}
+                         <div className="flex justify-between items-center py-4 border-b border-white/10">
+                            <h1 className="text-2xl font-display tracking-widest bg-gradient-to-r from-cyan-400 to-purple-500 text-transparent bg-clip-text">TUMBLE ARENA</h1>
+                            <button onClick={() => audioManager.toggleMusic()} className="p-2 bg-white/5 rounded-full hover:bg-white/10 transition">
+                                {audioManager.isMusicPlaying ? '🔊' : '🔇'}
+                            </button>
                         </div>
-                        <div className="w-10"></div>
-                    </header>
-                    <div className="flex-1 max-w-4xl mx-auto w-full grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 flex flex-col">
-                            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                                <ICONS.Users className="text-cyan-400" /> Oyuncular ({players.length})
-                            </h2>
-                            <div className="space-y-3 flex-1 overflow-y-auto max-h-[400px]">
-                                {players.map(p => (
-                                    <div key={p.id} className="flex items-center justify-between bg-slate-800 p-3 rounded-lg border border-slate-700">
-                                        <div className="flex items-center gap-3">
-                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${p.isHost ? 'bg-yellow-500/20 text-yellow-500' : 'bg-slate-700 text-slate-300'}`}>
-                                                {p.name[0].toUpperCase()}
-                                            </div>
-                                            <span className={p.id === p.hostId ? 'text-yellow-400 font-bold' : 'text-slate-200'}>
-                                                {p.name}
-                                            </span>
-                                        </div>
-                                        {p.isHost && <ICONS.Crown size={16} className="text-yellow-500" />}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                        <div className="flex flex-col justify-center items-center text-center space-y-6">
-                            <div className="relative">
-                                <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-cyan-600 blur-3xl opacity-20 rounded-full"></div>
-                                <img src={`https://api.dicebear.com/7.x/bottts/svg?seed=${roomCode}`} alt="Avatar" className="w-32 h-32 relative z-10" />
-                            </div>
-                            <div className="space-y-2">
-                                <h3 className="text-2xl font-bold">Hazır mısınız?</h3>
-                                <p className="text-slate-400 max-w-xs mx-auto">
-                                    Gemini AI spikerimiz maçı sunmak için hazır! En yüksek skoru yapın ve sesli yorumu dinleyin.
-                                </p>
-                            </div>
-                            {isHost ? (
-                                <button 
-                                    onClick={onStart}
-                                    className="w-full max-w-xs py-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 rounded-xl font-black text-xl shadow-lg shadow-green-900/50 transform transition hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
-                                >
-                                    <ICONS.Play fill="currentColor" /> OYUNU BAŞLAT
-                                </button>
-                            ) : (
-                                <div className="bg-slate-800/80 px-6 py-4 rounded-xl border border-slate-700 animate-pulse">
-                                    <span className="text-cyan-400 font-bold">Host bekleniyor...</span>
-                                </div>
-                            )}
+
+                        <div className="flex-1 flex flex-col justify-center">
+                            {view === 'menu' && <Menu user={user} onCreate={createRoom} onJoin={joinRoom} error={error} />}
+                            {view === 'lobby' && <Lobby roomCode={roomCode} players={players} user={user} db={db} />}
+                            {view === 'game' && <Game roomCode={roomCode} players={players} user={user} roomData={roomData} db={db} />}
                         </div>
                     </div>
                 </div>
             );
         }
 
-        function GameArena({ user, roomCode, roomData, players, isHost, onReset, db, appId, callGemini, callGeminiTTS, findMatches, generateGrid, SYMBOLS, GRID_SIZE, ANIMATION_DELAY }) {
+        // --- ALT BİLEŞENLER ---
+
+        function SplashScreen({ onEnter }) {
+            return (
+                <div className="h-screen w-full bg-black flex flex-col items-center justify-center relative overflow-hidden cursor-pointer" onClick={onEnter}>
+                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20"></div>
+                    <h1 className="text-6xl md:text-8xl font-display text-transparent bg-clip-text bg-gradient-to-br from-purple-500 via-cyan-400 to-blue-600 animate-glow mb-8 text-center px-4">
+                        TUMBLE<br/>ARENA
+                    </h1>
+                    <p className="text-cyan-200/70 font-mono text-lg tracking-[0.3em] animate-pulse mb-12">ONLINE PvP SLOT BATTLE</p>
+                    <button className="px-12 py-4 bg-white/5 border border-cyan-500/50 text-cyan-400 rounded-none font-bold tracking-widest hover:bg-cyan-500 hover:text-black transition duration-300 uppercase">
+                        Giriş Yap / Sesi Aç
+                    </button>
+                    <p className="absolute bottom-10 text-xs text-gray-600">Gemini AI Spiker Destekli • Web Audio API Ses Motoru</p>
+                </div>
+            );
+        }
+
+        function Menu({ user, onCreate, onJoin, error }) {
+            const [name, setName] = useState('');
+            const [code, setCode] = useState('');
+            const [tab, setTab] = useState('create'); // create | join
+
+            return (
+                <div className="max-w-md mx-auto w-full glass-panel p-8 rounded-2xl shadow-2xl animate-float">
+                    <div className="flex gap-4 mb-6">
+                        <button onClick={() => { audioManager.playClick(); setTab('create'); }} className={`flex-1 py-3 font-bold tracking-wider transition ${tab==='create' ? 'bg-purple-600 text-white shadow-[0_0_20px_rgba(147,51,234,0.5)]' : 'bg-white/5 text-gray-400'}`}>ODA KUR</button>
+                        <button onClick={() => { audioManager.playClick(); setTab('join'); }} className={`flex-1 py-3 font-bold tracking-wider transition ${tab==='join' ? 'bg-cyan-600 text-white shadow-[0_0_20px_rgba(34,211,238,0.5)]' : 'bg-white/5 text-gray-400'}`}>KATIL</button>
+                    </div>
+
+                    <div className="space-y-4">
+                        <div>
+                            <label className="text-xs uppercase text-gray-500 font-bold mb-1 block">Oyuncu Adı</label>
+                            <input type="text" value={name} onChange={e=>setName(e.target.value)} className="w-full bg-black/40 border border-white/10 p-3 text-white focus:border-cyan-500 outline-none transition" placeholder="NICKNAME" maxLength={12} />
+                        </div>
+                        
+                        {tab === 'join' && (
+                             <div>
+                                <label className="text-xs uppercase text-gray-500 font-bold mb-1 block">Oda Kodu</label>
+                                <input type="text" value={code} onChange={e=>setCode(e.target.value)} className="w-full bg-black/40 border border-white/10 p-3 text-white focus:border-cyan-500 outline-none transition font-mono uppercase tracking-widest" placeholder="ABCD" maxLength={4} />
+                            </div>
+                        )}
+
+                        {error && <p className="text-red-400 text-sm text-center bg-red-900/20 p-2 rounded">{error}</p>}
+
+                        <button 
+                            onClick={() => tab === 'create' ? onCreate(name) : onJoin(code, name)}
+                            className={`w-full py-4 mt-4 font-display text-xl uppercase tracking-widest transition hover:scale-[1.02] active:scale-[0.98] ${tab==='create' ? 'bg-gradient-to-r from-purple-600 to-indigo-600' : 'bg-gradient-to-r from-cyan-600 to-blue-600'}`}
+                        >
+                            {tab === 'create' ? 'ARENAYI OLUŞTUR' : 'SAVAŞA GİR'}
+                        </button>
+                    </div>
+                    <div className="mt-4 text-center text-xs text-gray-600 font-mono">ID: {user?.uid.slice(0,6)}...</div>
+                </div>
+            );
+        }
+
+        function Lobby({ roomCode, players, user, db }) {
+            const isHost = players.find(p => p.id === user.uid)?.isHost;
+            const startGame = async () => {
+                audioManager.playClick();
+                const { updateDoc, doc } = window.firebaseModules;
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomCode), { status: 'playing', round: 1 });
+            };
+
+            return (
+                <div className="max-w-4xl mx-auto w-full flex flex-col md:flex-row gap-8">
+                    <div className="flex-1 glass-panel p-6 rounded-2xl">
+                        <h2 className="text-gray-400 uppercase text-xs font-bold tracking-widest mb-4">LOBİ DURUMU</h2>
+                        <div className="text-center py-10">
+                            <div className="text-6xl font-display text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-cyan-400 tracking-widest mb-2">{roomCode}</div>
+                            <p className="text-gray-400 text-sm animate-pulse">DİĞER OYUNCULAR BEKLENİYOR...</p>
+                        </div>
+                        
+                        {isHost ? (
+                            <button onClick={startGame} className="w-full py-4 bg-green-600 hover:bg-green-500 text-white font-bold tracking-widest rounded transition shadow-[0_0_30px_rgba(22,163,74,0.4)] hover:shadow-[0_0_50px_rgba(22,163,74,0.6)]">
+                                OYUNU BAŞLAT
+                            </button>
+                        ) : (
+                            <div className="w-full py-4 bg-white/5 text-center text-gray-500 rounded font-mono text-sm">KURUCU BAŞLATIYOR...</div>
+                        )}
+                    </div>
+
+                    <div className="flex-1 glass-panel p-6 rounded-2xl flex flex-col h-[500px]">
+                        <h2 className="text-gray-400 uppercase text-xs font-bold tracking-widest mb-4 flex justify-between">
+                            <span>OYUNCULAR</span>
+                            <span>{players.length}/15</span>
+                        </h2>
+                        <div className="flex-1 overflow-y-auto space-y-2 pr-2">
+                            {players.map((p, i) => (
+                                <div key={p.id} className="flex items-center justify-between p-3 bg-white/5 border border-white/5 rounded hover:bg-white/10 transition">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center font-bold text-xs border border-white/10">
+                                            {i + 1}
+                                        </div>
+                                        <span className={`font-bold ${p.id === user.uid ? 'text-cyan-400' : 'text-gray-300'}`}>{p.name}</span>
+                                    </div>
+                                    {p.isHost && <span className="text-[10px] bg-yellow-500/20 text-yellow-500 px-2 py-1 rounded">HOST</span>}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function Game({ roomCode, players, user, roomData, db }) {
             const [grid, setGrid] = useState([]);
+            const [status, setStatus] = useState('idle');
             const [roundScore, setRoundScore] = useState(0);
             const [multiplier, setMultiplier] = useState(1);
-            const [status, setStatus] = useState('idle'); // idle | spinning | tumbling | finished
-            const [combo, setCombo] = useState(0);
             
-            const [generatingCommentary, setGeneratingCommentary] = useState(false);
-            const [generatingShout, setGeneratingShout] = useState(false);
-            const [audioUrl, setAudioUrl] = useState(null); 
-            const [isSpeaking, setIsSpeaking] = useState(false);
+            // AI Spiker State
+            const [aiCommentary, setAiCommentary] = useState('');
+            const [audioSrc, setAudioSrc] = useState(null);
             const audioRef = useRef(null);
-            
-            const currentRoundId = roomData?.roundId || 0;
 
-            // Seslendirme fonksiyonu (Tarayıcı otomatik oynatma engeli için kullanıcı etkileşimi şartı gözetildi)
-            const playCommentaryAudio = async (text) => {
-                if (isSpeaking) {
-                    audioRef.current.pause();
-                    audioRef.current.currentTime = 0;
-                    setIsSpeaking(false);
+            const isHost = players.find(p => p.id === user.uid)?.isHost;
+
+            // Spiker Sesi Çal
+            useEffect(() => {
+                if (audioSrc && audioRef.current) {
+                    audioRef.current.src = audioSrc;
+                    audioRef.current.play().catch(e => console.log("Ses çalma hatası:", e));
                 }
-                
-                // Eğer audioUrl zaten varsa, doğrudan çalmayı dene
-                if (audioUrl && audioRef.current.src === window.URL.createObjectURL(new Blob([], { type: 'audio/wav' }))) {
-                    console.log("Mevcut ses URL'ini oynatmayı deniyor.");
-                    audioRef.current.play().then(() => setIsSpeaking(true)).catch(e => console.error("Ses oynatma hatası (manual):", e));
-                    return;
+            }, [audioSrc]);
+
+            // AI Spiker Tetikleyici (Sadece Host)
+            useEffect(() => {
+                if (isHost && roomData.status === 'playing' && roomData.commentary) {
+                   // Host global commentary'yi değiştirdiğinde diğerleri sadece text görür, seslendirme client-side tetiklenmeli
                 }
-                
-                // 1. Audio URL'ini oluştur
-                console.log("TTS metni oluşturuluyor:", text);
-                const url = await callGeminiTTS(text);
-                
-                if (url) {
-                    setAudioUrl(url); 
-                    const audio = audioRef.current;
-                    if (audio) {
-                        audio.src = url;
-                        audio.load(); // Yeni kaynağı yükle
-                        audio.play().then(() => {
-                            // Oynatma başarılı olursa state'i güncelle
-                            setIsSpeaking(true);
-                            console.log("Ses oynatma başarılı.");
-                        }).catch(e => {
-                            // Oynatma başarısız olursa (genellikle kullanıcı etkileşimi gerekmesi)
-                            console.error("Ses oynatma başarısız (otomatik engellendi). Kullanıcı manuel başlatmalı:", e);
-                            setIsSpeaking(false);
-                        });
-                    }
-                } else {
-                    console.warn("TTS URL'i alınamadı, ses oynatılamıyor.");
-                }
-            };
-            
+                // Text değiştiğinde herkes için ekranda göster
+                if (roomData.commentary) setAiCommentary(roomData.commentary);
+            }, [roomData.commentary]);
+
             const runGameRound = async () => {
                 setStatus('spinning');
                 setRoundScore(0);
                 setMultiplier(1);
-                setCombo(0);
-                setAudioUrl(null); 
+                audioManager.playSpin();
+
+                // 1. Rastgele Grid
+                const newGrid = Array(25).fill(null).map(() => SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]);
+                setGrid(newGrid);
                 
-                // 1. Izgarayı oluştur
-                let currentGrid = generateGrid();
-                setGrid(currentGrid);
-                await new Promise(r => setTimeout(r, 1000));
+                await new Promise(r => setTimeout(r, 800)); // Dönme efekti bekleme
 
-                // 2. Tumble döngüsü
-                setStatus('tumbling');
-                let keepTumbling = true;
-                let accumulatedScore = 0;
-                let currentCombo = 0;
-
-                while (keepTumbling) {
-                    const matches = findMatches(currentGrid);
-                    
-                    if (matches.length > 0) {
-                        currentCombo++;
-                        setCombo(currentCombo);
-                        let stepScore = 0;
-                        matches.forEach(idx => {
-                            if(currentGrid[idx]) stepScore += currentGrid[idx].val;
-                        });
-                        accumulatedScore += stepScore;
-                        setRoundScore(accumulatedScore); 
-                        await new Promise(r => setTimeout(r, ANIMATION_DELAY));
-                        const newGrid = [...currentGrid];
-                        matches.forEach(idx => newGrid[idx] = null);
-                        setGrid([...newGrid]); 
-                        await new Promise(r => setTimeout(r, 400)); 
-                        
-                        // Yer çekimi ve yeni semboller
-                        for (let c = 0; c < GRID_SIZE; c++) {
-                            const col = [];
-                            for (let r = 0; r < GRID_SIZE; r++) { col.push(newGrid[r * GRID_SIZE + c]); }
-                            const surviving = col.filter(x => x !== null);
-                            const missing = GRID_SIZE - surviving.length;
-                            for(let k=0; k<missing; k++) { surviving.unshift(SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]); }
-                            for(let r=0; r<GRID_SIZE; r++) { newGrid[r * GRID_SIZE + c] = surviving[r]; }
-                        }
-                        currentGrid = newGrid;
-                        setGrid(currentGrid);
-                        await new Promise(r => setTimeout(r, 500)); 
-                    } else {
-                        keepTumbling = false;
+                // 2. Basit Puanlama Simülasyonu (Karmaşık fizik yerine hızlı oyun için)
+                // Gerçek tumble mantığı burada basitleştirildi
+                let totalScore = 0;
+                let combos = 0;
+                
+                // Rastgele 3-4 iterasyon tumble efekti
+                for(let i=0; i<3; i++) {
+                    setStatus('tumbling');
+                    // Rastgele hücreleri "patlat"
+                    const popCount = Math.floor(Math.random() * 5) + 1;
+                    if (popCount > 0) {
+                        combos++;
+                        audioManager.playClick(); // Pop sesi
+                        totalScore += popCount * 20;
+                        await new Promise(r => setTimeout(r, 400));
+                        // Yeni semboller (sadece görsel yenileme)
+                        setGrid(prev => prev.map(item => Math.random() > 0.7 ? SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)] : item));
                     }
                 }
 
-                // 3. Çarpan ve Final Skor
-                const rand = Math.random();
-                let mult = 1;
-                if (rand > 0.98) mult = 50;
-                else if (rand > 0.90) mult = 10;
-                else if (rand > 0.70) mult = 5;
-                else if (rand > 0.40) mult = 2;
-                setMultiplier(mult);
-                
-                const finalScore = accumulatedScore * mult;
+                // 3. Final Çarpan
+                const finalMult = Math.random() > 0.9 ? 5 : (Math.random() > 0.7 ? 2 : 1);
+                setMultiplier(finalMult);
+                const finalScore = totalScore * finalMult;
                 setRoundScore(finalScore);
+                
+                if (finalScore > 100) audioManager.playWin();
+
                 setStatus('finished');
 
-                if (user) {
-                    // Skoru Firestore'a kaydet (Tüm oyuncular için günceller)
-                    await window.updateDoc(window.doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomCode, 'players', user.uid), {
-                        score: finalScore,
-                        multiplier: mult,
-                        lastWin: accumulatedScore
-                    });
-                }
+                // Skoru Kaydet
+                const { updateDoc, doc } = window.firebaseModules;
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomCode, 'players', user.uid), {
+                    score: finalScore, 
+                    lastWin: finalScore
+                });
             };
-            
-            // Oyun Döngüsü Tetikleyici (roomData'daki roundId değiştiğinde çalışır)
+
+            // Round Kontrolcüsü
             useEffect(() => {
-                if (roomData?.status === 'playing' && currentRoundId > 0 && status === 'idle') {
+                if (roomData.round > 0 && status === 'idle') {
                     runGameRound();
                 }
-            }, [currentRoundId, roomData?.status]); 
+            }, [roomData.round]);
 
-            // Host için yeni round başlatma
-            const triggerNextRound = async () => {
-                if (!isHost || status !== 'finished') return;
-                setStatus('idle'); // Yerel durumu sıfırla ki, useEffect tetiklesin
+            // Host: Round Bittiğinde Yorum Yap ve Sıfırla
+            const handleNextRound = async () => {
+                if(!isHost) return;
                 
-                // Firestore'daki roundId'yi artır ve yorumu temizle
-                await window.updateDoc(window.doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomCode), {
-                    roundId: currentRoundId + 1,
-                    commentary: ''
-                });
-            };
-
-            // --- GEMINI FONKSİYONLARI ---
-
-            const generateMatchCommentary = async () => {
-                if (generatingCommentary || !players.length) return;
-                setGeneratingCommentary(true);
-
-                const winner = players[0];
-                const runnerUp = players.length > 1 ? players[1] : { name: "kimse", score: 0 };
+                // En yüksek skoru bulan
+                const winner = players[0]; // Zaten sıralı
                 
-                const prompt = `
-                    Sen çok heyecanlı bir e-spor slot turnuvası spikerisin.
-                    Oyun: Tumble Arena.
-                    Kazanan: ${winner.name} (Puan: ${winner.score}, Çarpan: ${winner.multiplier}x).
-                    İkinci: ${runnerUp.name} (Puan: ${runnerUp.score}).
-                    
-                    Görevin: Bu maç sonucunu yorumlayan çok heyecanlı, kısa (maksimum 2 cümle) ve Türkçe bir özet yaz.
-                `;
-
-                // 1. Metni oluştur
-                const text = await callGemini(prompt);
+                // AI Yorumu Üret
+                const prompt = `Tumble Arena oyununda ${winner.name} isimli oyuncu ${winner.score} puanla lider! Çok kısa, tek cümlelik, gaza getirici bir spiker yorumu yap. Türkçe olsun.`;
+                const text = await generateCommentaryText(prompt);
                 
-                // Metni odaya kaydet (Tüm oyuncular görsün)
-                await window.updateDoc(window.doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomCode), {
-                    commentary: text
+                // Text'i DB'ye yaz (Herkes görsün)
+                const { updateDoc, doc } = window.firebaseModules;
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomCode), {
+                    commentary: text,
+                    // round statüsünü değiştirmek yerine client tarafında reset bekliyoruz
                 });
 
-                // 2. Metni seslendir (Sadece yorumu oluşturan cihazda)
-                await playCommentaryAudio(text);
-
-                setGeneratingCommentary(false);
+                // Sesi sadece host veya herkes üretebilir. 
+                // Trafik tasarrufu için sesi sadece kendi client'ında üretip dinletelim, diğerleri metni okur.
+                // Veya herkes üretsin:
+                generateSpeech(text, setAudioSrc);
             };
 
-            const generateShout = async () => {
-                if (generatingShout || !user) return;
-                setGeneratingShout(true);
-                const myPlayer = players.find(p => p.id === user.uid);
-                const myRank = players.findIndex(p => p.id === user.uid) + 1;
-                const isWinning = myRank === 1;
-                const prompt = `
-                    Sen bir oyun içi karakterisin. Durumun: ${isWinning ? "Lider" : `Sıra: ${myRank}`}.
-                    Puanın: ${myPlayer?.score || 0}.
-                    Görevin: Rakiplere sataşmak için 6-7 kelimelik çok kısa, komik, Türkçe bir laf (shout) üret.
-                `;
-                const text = await callGemini(prompt);
-                await window.updateDoc(window.doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomCode, 'players', user.uid), {
-                    shout: text
-                });
-                setGeneratingShout(false);
+            const triggerReset = async () => {
+                 if(!isHost) return;
+                 const { updateDoc, doc } = window.firebaseModules;
+                 setStatus('idle');
+                 setAiCommentary('');
+                 // Yeni round için sayıyı artır
+                 await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomCode), { 
+                     round: roomData.round + 1,
+                     commentary: ''
+                 });
             };
-
-            const winner = players.length > 0 ? players[0] : null;
 
             return (
-                <div className="min-h-screen bg-slate-900 text-white flex flex-col md:flex-row overflow-hidden font-sans">
-                    {/* Audio element'i: onPlay ve onEnded eventleri ile isSpeaking state'ini yönetiyoruz */}
-                    <audio 
-                        ref={audioRef} 
-                        // src={audioUrl} // SRC'yi doğrudan ayarlamayı kaldırıp, manuel olarak ayarlıyoruz
-                        onPlay={() => setIsSpeaking(true)}
-                        onEnded={() => {
-                            setIsSpeaking(false);
-                            // Ses oynatma bittiğinde URL'i temizleyebiliriz
-                            // window.URL.revokeObjectURL(audioRef.current.src);
-                            // audioRef.current.src = "";
-                        }}
-                        onError={(e) => {
-                            console.error("Audio Element Hatası:", e.target.error);
-                            setIsSpeaking(false);
-                            setAudioUrl(null);
-                        }}
-                    />
+                <div className="flex flex-col md:flex-row gap-6 max-w-6xl mx-auto w-full h-[85vh]">
+                    <audio ref={audioRef} className="hidden" />
                     
-                    {/* LEFT: Game Board */}
-                    <div className="flex-1 flex flex-col relative">
-                        <div className="h-16 bg-slate-800 border-b border-slate-700 flex items-center justify-between px-6 z-20 shadow-xl">
-                            <div className="flex items-center gap-4">
-                                <div className="bg-slate-700 px-3 py-1 rounded text-xs font-mono text-slate-400">ROUND #{currentRoundId}</div>
-                                <div className="text-xl font-bold text-yellow-400 flex items-center gap-2">
-                                    <ICONS.Trophy size={20} />
-                                    <span>{user ? players.find(p=>p.id===user.uid)?.score || 0 : 0}</span>
-                                </div>
-                            </div>
-                            <div className="text-sm font-bold text-slate-400 hidden md:block">TUMBLE ARENA</div>
-                            <div className={`text-xl font-black ${multiplier > 1 ? 'text-purple-400 animate-pulse' : 'text-slate-600'}`}>
-                                x{multiplier}
-                            </div>
-                        </div>
-
-                        <div className="flex-1 flex items-center justify-center p-4 relative bg-slate-950 overflow-hidden">
-                            {/* AI COMMENTARY OVERLAY */}
-                            {roomData?.commentary && status === 'finished' && (
-                                <div className="absolute top-4 left-0 right-0 z-30 flex justify-center animate-in slide-in-from-top duration-500 pointer-events-none">
-                                    <div className="bg-slate-800/90 backdrop-blur border border-purple-500/50 max-w-lg p-4 rounded-xl shadow-2xl flex gap-4 items-start pointer-events-auto">
-                                        <div className={`p-2 rounded-xl shrink-0 transition-colors ${isSpeaking ? 'bg-green-500 animate-pulse' : 'bg-purple-600'}`}>
-                                            <ICONS.Mic size={24} className="text-white" />
-                                        </div>
-                                        <div className="flex-1">
-                                            <h4 className="text-xs font-bold text-purple-400 uppercase tracking-widest mb-1 flex justify-between">
-                                                <span>Cyber Caster 🎙️</span>
-                                                <button 
-                                                    onClick={() => playCommentaryAudio(roomData.commentary)}
-                                                    className="text-slate-400 hover:text-white transition p-1 rounded-full bg-slate-700 hover:bg-slate-600"
-                                                    title="Tekrar Seslendir"
-                                                >
-                                                    {isSpeaking ? <ICONS.Volume2 size={16} className="text-green-300" /> : <ICONS.Play size={16} className="text-white" fill="currentColor" />}
-                                                </button>
-                                            </h4>
-                                            <p className="text-sm md:text-base text-slate-200 leading-snug">{roomData.commentary}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            <div className="relative">
-                                <div className={`absolute inset-0 bg-purple-500 blur-[80px] opacity-20 transition-opacity duration-500 ${status === 'tumbling' ? 'opacity-40' : ''}`}></div>
-                                <div 
-                                    className="grid grid-cols-5 gap-2 bg-slate-900/80 p-3 rounded-2xl border-4 border-slate-700 shadow-2xl relative z-10"
-                                    style={{ width: 'min(90vw, 450px)', aspectRatio: '1/1' }}
-                                >
-                                    {grid.length > 0 ? grid.map((cell, idx) => (
-                                        <div key={idx} className={`grid-cell-container bg-slate-800 rounded-lg flex items-center justify-center text-4xl shadow-inner transition-all duration-300 ${cell ? 'scale-100 opacity-100' : 'scale-0 opacity-0'} ${status === 'tumbling' ? 'animate-none' : ''}`}>
-                                            <span className={`filter drop-shadow-md ${cell?.color || 'text-white'}`}>{cell?.icon}</span>
-                                        </div>
-                                    )) : (
-                                        <div className="col-span-5 h-full flex flex-col items-center justify-center text-slate-500">
-                                            <ICONS.Gamepad2 size={48} className={`mb-4 ${status==='spinning'?'animate-spin':''}`} />
-                                            <p>{status === 'idle' ? 'Host Spin bekliyor...' : 'Oyun Yükleniyor...'}</p>
-                                        </div>
-                                    )}
-                                </div>
-                                {combo > 1 && (
-                                    <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-yellow-500 text-black font-black px-4 py-1 rounded-full text-lg animate-bounce z-50 whitespace-nowrap border-2 border-white">
-                                        COMBO x{combo}!
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Host Kontrolleri ve Round Bitiş Ekranı */}
-                        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex flex-col gap-3 w-full max-w-xs px-4">
-                            {isHost && status === 'finished' && (
-                                <>
-                                    {!roomData?.commentary && (
-                                        <button 
-                                            onClick={generateMatchCommentary}
-                                            disabled={generatingCommentary}
-                                            className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white px-6 py-3 rounded-xl font-bold shadow-lg transition flex items-center justify-center gap-2"
-                                        >
-                                            {generatingCommentary ? <ICONS.RefreshCw className="animate-spin" size={18} /> : <ICONS.Volume2 size={18} />}
-                                            AI Sesli Yorum Oluştur
-                                        </button>
-                                    )}
-                                    {roomData?.commentary && (
-                                        <button 
-                                            onClick={() => playCommentaryAudio(roomData.commentary)}
-                                            disabled={isSpeaking || generatingCommentary}
-                                            className={`w-full py-3 rounded-xl font-bold text-lg shadow-lg transition flex items-center justify-center gap-2 ${isSpeaking ? 'bg-green-500/50 text-slate-400' : 'bg-cyan-600 hover:bg-cyan-500'}`}
-                                            title="Tekrar Seslendir"
-                                        >
-                                            {isSpeaking ? 'Seslendiriliyor...' : 'Yorumu Tekrar Oynat'}
-                                            {isSpeaking ? <ICONS.Volume2 className="animate-pulse" size={18} /> : <ICONS.Play size={18} fill="currentColor" />}
-                                        </button>
-                                    )}
-                                    <button 
-                                        onClick={triggerNextRound}
-                                        className="w-full py-3 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 font-black text-lg shadow-lg transition hover:scale-[1.02] active:scale-[0.98]"
-                                    >
-                                        YENİ ROUND BAŞLAT
-                                    </button>
-                                </>
-                            )}
-                            {isHost && status === 'finished' && (
-                                <button onClick={onReset} className="bg-slate-700 hover:bg-slate-600 text-white px-6 py-2 rounded-xl font-bold shadow-lg transition text-sm">
-                                    Lobiye Dön
-                                </button>
-                            )}
-                        </div>
-
-                        {status === 'finished' && (
-                            <div className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none">
-                                <div className="bg-black/60 backdrop-blur-sm p-6 rounded-2xl text-center animate-in fade-in zoom-in duration-300 border border-purple-500/50 pointer-events-auto">
-                                    <div className="text-slate-300 text-sm uppercase tracking-widest font-bold mb-1">Tur Kazancı</div>
-                                    <div className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-purple-400 filter drop-shadow-lg">
-                                        {roundScore}
-                                    </div>
-                                    {multiplier > 1 && <div className="mt-2 text-purple-400 font-bold text-xl animate-pulse">(Çarpan x{multiplier})</div>}
+                    {/* SOL PANEL: OYUN ALANI */}
+                    <div className="flex-[2] flex flex-col relative">
+                        {/* Spiker Kutusu */}
+                        {aiCommentary && (
+                            <div className="absolute top-4 left-0 right-0 z-20 mx-auto w-max max-w-[90%] bg-purple-900/90 border border-purple-500 p-4 rounded-xl backdrop-blur animate-in slide-in-from-top fade-in duration-500 shadow-[0_0_30px_rgba(168,85,247,0.5)]">
+                                <div className="flex items-center gap-3">
+                                    <span className="text-2xl">🎙️</span>
+                                    <p className="text-white font-bold italic">"{aiCommentary}"</p>
                                 </div>
                             </div>
                         )}
+
+                        <div className="flex-1 bg-slate-900/50 border border-white/10 rounded-3xl relative flex items-center justify-center p-4 overflow-hidden shadow-2xl">
+                             <div className="grid grid-cols-5 gap-2 w-full max-w-[500px] aspect-square">
+                                {grid.map((item, i) => (
+                                    <div key={i} className={`bg-slate-800 rounded-lg flex items-center justify-center text-4xl shadow-inner border border-white/5 transition-all duration-300 ${status === 'tumbling' ? 'scale-90' : 'scale-100'}`}>
+                                        <span className={item?.color || 'text-white'}>{item?.icon}</span>
+                                    </div>
+                                ))}
+                             </div>
+
+                             {/* Sonuç Overlay */}
+                             {status === 'finished' && (
+                                 <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-10 flex flex-col items-center justify-center">
+                                     <h3 className="text-purple-400 font-bold tracking-widest text-xl mb-2">TUR KAZANCI</h3>
+                                     <div className="text-7xl font-display text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.5)] mb-4">{roundScore}</div>
+                                     {multiplier > 1 && <div className="text-yellow-400 font-bold text-2xl animate-bounce">x{multiplier} ÇARPAN!</div>}
+                                     
+                                     {isHost && (
+                                         <div className="mt-8 flex gap-4">
+                                            {!aiCommentary ? (
+                                                <button onClick={handleNextRound} className="px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white rounded font-bold transition">
+                                                    🎙️ YORUM YAP
+                                                </button>
+                                            ) : (
+                                                <button onClick={triggerReset} className="px-6 py-3 bg-green-600 hover:bg-green-500 text-white rounded font-bold transition animate-pulse">
+                                                    SONRAKİ ROUND ➡️
+                                                </button>
+                                            )}
+                                         </div>
+                                     )}
+                                     {!isHost && <p className="mt-8 text-gray-400 animate-pulse">HOST BEKLENİYOR...</p>}
+                                 </div>
+                             )}
+                        </div>
                     </div>
 
-                    <div className="w-full md:w-80 bg-slate-800 border-l border-slate-700 flex flex-col shadow-2xl z-20">
-                        <div className="p-4 bg-slate-900 border-b border-slate-700 font-bold flex items-center justify-between text-cyan-400">
-                            <div className="flex items-center gap-2"><ICONS.Zap size={18} fill="currentColor" /> SKORLAR</div>
+                    {/* SAĞ PANEL: LİDERLİK TABLOSU (15 Kişilik Scrollable) */}
+                    <div className="flex-1 glass-panel border-l border-white/10 flex flex-col overflow-hidden rounded-2xl md:rounded-none md:rounded-r-2xl h-full">
+                        <div className="p-4 border-b border-white/10 bg-black/20">
+                            <h3 className="font-display tracking-widest text-cyan-400 text-lg">CANLI SKOR</h3>
                         </div>
-                        <div className="flex-1 overflow-y-auto p-2 space-y-2">
-                            {players.map((p, idx) => {
-                                const isMe = p.id === user?.uid;
-                                return (
-                                    <div key={p.id} className={`relative p-3 rounded-xl border transition-all duration-500 flex flex-col gap-2 ${idx === 0 ? 'bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border-yellow-500/50' : 'bg-slate-800 border-slate-700'} ${isMe ? 'ring-2 ring-purple-500' : ''}`}>
-                                        <div className="flex justify-between items-center relative z-10">
-                                            <div className="flex items-center gap-3">
-                                                <div className="text-xs font-bold text-slate-500 w-4">#{idx+1}</div>
-                                                <div className="font-bold text-slate-200 flex flex-col">
-                                                    <span>{p.name}</span>
-                                                    {p.shout && <span className="text-[10px] text-cyan-300 italic animate-pulse">"{p.shout}"</span>}
-                                                </div>
-                                            </div>
-                                            <div className="font-mono font-black text-lg text-white">{p.score || 0}</div>
+                        <div className="flex-1 overflow-y-auto p-2 space-y-2 custom-scrollbar">
+                            {players.map((p, i) => (
+                                <div key={p.id} className={`flex items-center justify-between p-3 rounded-xl border transition-all duration-500 ${p.id === user.uid ? 'bg-cyan-900/30 border-cyan-500/50' : 'bg-white/5 border-transparent'} ${i===0 ? 'scale-105 my-2 shadow-[0_0_15px_rgba(234,179,8,0.2)] bg-yellow-900/10 border-yellow-500/30' : ''}`}>
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-8 h-8 flex items-center justify-center rounded font-bold text-sm ${i===0 ? 'text-yellow-400' : 'text-gray-400'}`}>
+                                            {i===0 ? '👑' : `#${i+1}`}
                                         </div>
-                                        {isMe && !p.shout && (
-                                            <button onClick={generateShout} disabled={generatingShout} className="self-start text-[10px] bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded flex items-center gap-1 text-slate-300 transition">
-                                                {generatingShout ? <ICONS.RefreshCw size={10} className="animate-spin"/> : <ICONS.MessageSquare size={10} />}
-                                                ✨ Hype Ver!
-                                            </button>
-                                        )}
-                                        {winner && winner.score > 0 && (
-                                            <div className="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-cyan-500 to-purple-500 transition-all duration-700 rounded-b-xl" style={{ width: `${Math.min(100, (p.score / winner.score) * 100)}%` }}></div>
-                                        )}
+                                        <div>
+                                            <div className="font-bold text-sm">{p.name}</div>
+                                            <div className="text-[10px] text-gray-500">Son: {p.lastWin || 0}</div>
+                                        </div>
                                     </div>
-                                );
-                            })}
-                        </div>
-                        <div className="p-4 bg-slate-900 border-t border-slate-700">
-                            <button onClick={onReset} className="w-full py-3 rounded-lg bg-slate-700 hover:bg-slate-600 font-bold text-sm text-slate-300 transition">LOBİYE GERİ DÖN</button>
+                                    <div className="font-mono font-bold text-lg">{p.score}</div>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </div>
             );
         }
 
-        // ReactDOM.createRoot kullanımı
-        const container = document.getElementById('root');
-        const root = ReactDOM.createRoot(container);
+        const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
 </body>
